@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quête Forme</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#17122b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quête Forme">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Monde arcade nocturne, un seul thème. Colonne gauche = jauge + actions, colonne droite = journal + quêtes */
+  --bg:#17122b;
+  --panel:#231c3f;
+  --panel2:#2f2654;
+  --line:#40366b;
+  --ink:#f4efff;
+  --muted:#a99fcb;
+  --gold:#ffc94a;
+  --good:#4fe08a;
+  --bad:#ff5a6e;
+  --warn:#ff9f43;
+  --cyan:#62d0ff;
+  --display:"Press Start 2P", ui-monospace, monospace;
+  --body:"Pixelify Sans", ui-rounded, system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.35;
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);background-size:16px 16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-size:20px;margin:0;letter-spacing:1px;color:var(--gold);text-shadow:3px 3px 0 #000}
+h2{font-family:var(--display);font-size:12px;margin:0 0 12px;color:var(--cyan);letter-spacing:.5px;text-wrap:balance}
+.chip{font-size:15px;padding:4px 10px;border:2px solid var(--line);background:var(--panel);color:var(--muted)}
+.chip.ok{color:var(--good);border-color:#2c6b4a}
+.chip.err{color:var(--warn);border-color:#7a4b1f}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.col{display:grid;gap:18px}
+.panel{background:var(--panel);border:3px solid var(--line);box-shadow:6px 6px 0 #0b0818;padding:16px}
+
+/* Jauge */
+.hero{display:grid;gap:14px}
+.hero-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.big{font-family:var(--display);font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:14px;color:var(--muted)}
+.status{font-family:var(--display);font-size:12px;padding:8px 10px;border:3px solid currentColor}
+.trend{color:var(--muted);font-size:16px}
+.gauge{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;padding:6px;background:#0d0a1c;border:3px solid #000}
+.gauge i{display:block;height:30px;background:#2a2347}
+.gauge.hit{animation:shake .35s}
+.gauge.up{animation:glow .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes glow{50%{box-shadow:0 0 0 4px var(--good)}}
+.scale{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--panel2);padding:8px 10px;border-left:4px solid var(--line)}
+.stat b{display:block;font-family:var(--display);font-size:14px;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--muted)}
+.xp{display:grid;gap:6px}
+.xp-row{display:flex;justify-content:space-between;font-size:15px;color:var(--muted)}
+.xp-row b{color:var(--gold);font-family:var(--display);font-size:11px}
+.xpbar{height:12px;background:#0d0a1c;border:2px solid #000}
+.xpbar div{height:100%;background:repeating-linear-gradient(90deg,var(--gold) 0 10px,#e6a92c 10px 12px)}
+
+/* Actions */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{display:flex;border:3px solid #000}
+.seg button{background:var(--panel2);border:0;padding:6px 12px;font-size:16px}
+.seg button[aria-pressed="true"]{background:var(--gold);color:#1a1300}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{background:var(--panel2);border:3px solid var(--line);padding:6px 12px;font-family:var(--display);font-size:10px}
+.tabs button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan)}
+.tabs button.lim[aria-pressed="true"]{border-color:var(--bad);color:var(--bad)}
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.act{position:relative;text-align:left;background:var(--panel2);border:3px solid #000;box-shadow:4px 4px 0 #0b0818;padding:10px 38px 10px 10px;display:grid;gap:6px;min-height:92px;transition:transform .06s}
+.act:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #0b0818}
+.act .ico{font-size:22px;line-height:1}
+.act .lbl{font-size:16px}
+.act .pts{font-family:var(--display);font-size:11px}
+.act .pts.pos{color:var(--good)}.act .pts.neg{color:var(--bad)}.act .pts.zero{color:var(--muted)}
+.act .cnt{font-size:13px;color:var(--muted)}
+.act.good{border-left:6px solid var(--good)}
+.act.bad{border-left:6px solid var(--bad)}
+.why{position:absolute;top:6px;right:6px;width:26px;height:26px;border:2px solid var(--line);background:var(--panel);font-family:var(--display);font-size:10px;display:grid;place-items:center;padding:0}
+.info{margin-top:12px;background:#120e24;border:2px dashed var(--line);padding:10px 12px;font-size:16px;color:var(--ink)}
+.info b{color:var(--gold)}
+.info p{margin:4px 0}
+
+/* Journal & quêtes */
+.log{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:340px;overflow:auto}
+.log li{display:flex;align-items:center;gap:8px;background:var(--panel2);padding:6px 8px;font-size:16px}
+.log li .p{font-family:var(--display);font-size:10px;min-width:48px;font-variant-numeric:tabular-nums}
+.log li .t{flex:1}
+.log li .h{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.log li button{background:none;border:2px solid var(--line);width:26px;height:26px;padding:0;font-size:14px;color:var(--muted)}
+.empty{color:var(--muted);font-size:16px;margin:0}
+.daysum{display:flex;justify-content:space-between;margin-bottom:10px;font-size:16px;color:var(--muted)}
+.daysum b{font-family:var(--display);font-size:12px}
+.q{display:grid;gap:4px;padding:8px 0;border-bottom:2px solid var(--line)}
+.q:last-child{border-bottom:0}
+.q-top{display:flex;justify-content:space-between;gap:8px;font-size:16px}
+.q-top .tag{font-family:var(--display);font-size:9px;padding:3px 6px;white-space:nowrap}
+.tag.done{background:var(--good);color:#06240f}
+.tag.run{background:var(--panel2);color:var(--muted)}
+.tag.fail{background:var(--bad);color:#2b0007}
+.qbar{height:8px;background:#0d0a1c}
+.qbar div{height:100%;background:var(--cyan)}
+.q.max .qbar div{background:var(--warn)}
+.q small{color:var(--muted);font-size:14px}
+
+/* Historique */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:860px){.charts{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+svg text{font-family:var(--body);font-size:13px;fill:var(--muted)}
+.legend{font-size:14px;color:var(--muted);margin-top:6px}
+
+/* À propos */
+.about{font-size:16px;color:var(--muted)}
+.about p{max-width:75ch;margin:6px 0}
+.about a{color:var(--cyan)}
+.about ul{margin:6px 0;padding-left:20px;max-width:75ch}
+
+/* Effets */
+.float{position:fixed;pointer-events:none;font-family:var(--display);font-size:16px;z-index:50;text-shadow:2px 2px 0 #000;animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-50px)}}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#000;border:3px solid var(--gold);padding:8px 12px;display:flex;gap:12px;align-items:center;z-index:60;font-size:16px;max-width:calc(100% - 32px)}
+.toast button{background:var(--gold);color:#1a1300;border:0;padding:4px 10px;font-family:var(--display);font-size:9px}
+.levelup{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:70}
+.levelup div{font-family:var(--display);font-size:22px;color:var(--gold);background:#000;border:4px solid var(--gold);padding:18px 22px;text-shadow:3px 3px 0 #6b4a00;animation:pop 1.6s forwards}
+@keyframes pop{0%{transform:scale(.4);opacity:0}15%{transform:scale(1.1);opacity:1}80%{opacity:1}100%{opacity:0}}
+/* Formulaire sport */
+.overlay{position:fixed;inset:0;background:rgba(8,5,20,.78);display:grid;place-items:center;z-index:80;padding:16px}
+.overlay[hidden]{display:none}
+.sheet{background:var(--panel);border:3px solid var(--gold);box-shadow:8px 8px 0 #000;padding:18px;width:min(460px,100%);display:grid;gap:12px;max-height:100%;overflow:auto}
+.sheet h2{color:var(--gold);margin:0}
+.fields{display:grid;gap:6px}
+.fields label,.flabel{font-size:15px;color:var(--muted)}
+.fields input{font:inherit;font-size:20px;background:#0d0a1c;color:var(--ink);border:3px solid var(--line);padding:6px 10px;width:100%}
+.fields input:focus,.fields select:focus{outline:none;border-color:var(--cyan)}
+.fields select{font:inherit;font-size:18px;background:#0d0a1c;color:var(--ink);border:3px solid var(--line);padding:6px 8px;width:100%}
+.fields .check{display:flex;gap:8px;align-items:flex-start;color:var(--ink);font-size:16px;margin-top:6px;cursor:pointer}
+.fields .check input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--good);flex:none}
+.fields .seg{flex-wrap:wrap}
+.fields .seg button{font-size:15px}
+.preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:16px;color:var(--muted)}
+.preview div{background:var(--panel2);padding:6px 8px}
+.preview span{display:block;font-size:13px}
+.preview b{font-family:var(--display);font-size:10px;color:var(--ink)}
+.note{font-size:14px;color:var(--muted);margin:0}
+.row{display:flex;gap:8px;justify-content:flex-end}
+.btn{background:var(--gold);color:#1a1300;border:3px solid #000;padding:8px 14px;font-family:var(--display);font-size:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:var(--panel2);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>QUÊTE FORME</h1>
+    <span class="chip" id="sync">Chargement…</span>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel hero" aria-label="Jauge de forme">
+        <div class="hero-top">
+          <div>
+            <h2>JAUGE FORME · 30 DERNIERS JOURS</h2>
+            <div class="big" id="hp">50<small>/100</small></div>
+          </div>
+          <div style="display:grid;gap:6px;justify-items:end">
+            <div class="status" id="status">MOYEN</div>
+            <div class="trend" id="trend"></div>
+          </div>
+        </div>
+        <div class="gauge" id="gauge" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+        <div class="scale"><span>0 À plat</span><span>50</span><span>100 Super forme</span></div>
+        <div class="stats">
+          <div class="stat"><span>Aujourd'hui</span><b id="sToday">0</b></div>
+          <div class="stat"><span>Moy. 7 jours</span><b id="s7">–</b></div>
+          <div class="stat"><span>Moy. 30 jours</span><b id="s30">–</b></div>
+          <div class="stat"><span>Série bons jours</span><b id="sStreak">0</b></div>
+        </div>
+        <div class="xp">
+          <div class="xp-row"><b id="lvl">NIVEAU 1</b><span id="xpTxt">0 / 150 XP</span></div>
+          <div class="xpbar"><div id="xpFill" style="width:0%"></div></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Actions">
+        <div class="toolbar">
+          <h2 style="margin:0">AJOUTER UNE ACTION</h2>
+          <div class="seg" role="group" aria-label="Jour">
+            <button id="dToday" aria-pressed="true">Aujourd'hui</button>
+            <button id="dYest" aria-pressed="false">Hier</button>
+          </div>
+        </div>
+        <div class="tabs" id="tabs" role="group" aria-label="Catégories"></div>
+        <div class="acts" id="acts"></div>
+        <div class="info" id="info">Touche une action pour l'enregistrer. Le bouton <b>?</b> explique d'où viennent les points.</div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-label="Journal">
+        <h2 id="logTitle">JOURNAL D'AUJOURD'HUI</h2>
+        <div class="daysum"><span id="daysumTxt">Total du jour</span><b id="daysum">0</b></div>
+        <ul class="log" id="log"></ul>
+      </section>
+      <section class="panel" aria-label="Quêtes de la semaine">
+        <h2>QUÊTES DE LA SEMAINE</h2>
+        <div id="quests"></div>
+        <p class="legend" style="margin-top:8px">Chaque quête réussie rapporte 100 XP. Les quêtes « maximum » sont validées à la fin de la semaine.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="Historique">
+    <div class="toolbar">
+      <h2 style="margin:0">HISTORIQUE</h2>
+      <div class="seg" role="group" aria-label="Période">
+        <button data-r="jours" aria-pressed="true">Jours</button>
+        <button data-r="semaines" aria-pressed="false">Semaines</button>
+        <button data-r="mois" aria-pressed="false">Mois</button>
+      </div>
+    </div>
+    <div class="charts">
+      <div><svg id="lineChart" viewBox="0 0 600 190" role="img" aria-label="Évolution de la jauge Forme sur 30 jours"></svg><div class="legend">Jauge Forme, fin de chaque journée (30 jours)</div></div>
+      <div><svg id="barChart" viewBox="0 0 600 190" role="img" aria-label="Points nets"></svg><div class="legend" id="barLegend">Points nets par jour</div></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Sauvegarde">
+    <h2>SAUVEGARDE</h2>
+    <p class="legend" id="bkInfo" style="margin:0 0 10px"></p>
+    <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+      <button type="button" class="btn" id="bkExport">Télécharger une sauvegarde</button>
+      <label class="btn ghost" for="bkImport" style="cursor:pointer">Restaurer un fichier</label>
+      <input id="bkImport" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="legend" style="margin-top:10px">Tes données restent uniquement sur cet appareil, sans compte. Télécharge une sauvegarde de temps en temps : elle sert à changer de téléphone ou à tout récupérer si tu vides les données du navigateur.</p>
+  </section>
+
+  <section class="panel about" aria-label="Règles">
+    <h2>COMMENT LES POINTS SONT CALCULÉS</h2>
+    <p>Les points suivent les repères officiels pour les adultes : le PNNS 2019 de Santé publique France pour l'alimentation, et l'OMS pour l'activité physique. Une habitude recommandée rapporte des points jusqu'à la quantité conseillée, puis presque plus rien : manger 12 fruits ne vaut pas mieux que 5. Un aliment à limiter coûte peu tant qu'on reste dans la limite conseillée, et davantage au-delà.</p>
+    <ul>
+      <li><b>Jauge Forme</b> : moyenne de tes points nets journaliers sur 30 jours, où les jours récents comptent plus (une journée perd la moitié de son poids en 5 jours). 50 = neutre. Les jours où tu n'as rien noté ne comptent pas.</li>
+      <li><b>Sports</b> : l'intensité vient du Compendium des activités physiques 2024, en MET (1 MET = dépense au repos). Pour le vélo et la course, elle dépend de ta vitesse moyenne. Pour le squash, le badminton et le padel, elle dépend du niveau de jeu. Points = MET × minutes ÷ 35, à plein tarif jusqu'à +10 par jour, puis 30 %. Exemple : 30 min de course à 10 km/h ≈ +9, 1 h de squash en loisir ≈ +11.</li>
+      <li><b>Écart autorisé</b> : le premier fast food de la semaine coûte −2 au lieu de −6. Un écart de temps en temps fait partie d'une alimentation normale.</li>
+      <li><b>XP et niveaux</b> : l'XP ne baisse jamais. Chaque point positif vaut 10 XP, chaque quête réussie 100 XP.</li>
+      <li><b>Bon jour</b> : une journée à +10 ou plus prolonge ta série.</li>
+    </ul>
+    <p>Cet outil sert à prendre de bonnes habitudes, pas à compter des calories. Pour un objectif de perte de poids précis, un médecin ou un diététicien peut t'accompagner.</p>
+    <p>Sources : <a href="https://www.mangerbouger.fr/Les-recommandations">Manger Bouger, recommandations PNNS (Santé publique France)</a> · <a href="https://www.who.int/fr/news-room/fact-sheets/detail/physical-activity">OMS, activité physique</a> · <a href="https://www.santepubliquefrance.fr/determinants-de-sante/alcool">Santé publique France, repères alcool</a> · <a href="https://pacompendium.com/sports/">Compendium des activités physiques 2024</a> · Sommeil : consensus AASM/SRS, au moins 7 h par nuit pour un adulte.</p>
+  </section>
+</div>
+
+<div class="overlay" id="sport" hidden></div>
+<script>
+(function(){
+"use strict";
+
+/* ---------- Catalogue d'actions (repères PNNS 2019 / OMS) ---------- */
+const CATS=[
+  {id:"assiette",label:"ASSIETTE"},
+  {id:"bouger",label:"BOUGER"},
+  {id:"recup",label:"RÉCUP"},
+  {id:"limiter",label:"À LIMITER",lim:true}
+];
+const ACTIONS=[
+  {id:"fl",cat:"assiette",ico:"🥦",label:"Portion de fruits ou légumes",pts:2,capDay:5,after:0.5,why:"PNNS : au moins 5 portions de fruits et légumes par jour (une portion ≈ 80 à 100 g, soit une pomme ou une assiette de crudités)."},
+  {id:"complet",cat:"assiette",ico:"🍞",label:"Féculent complet (pain, riz, pâtes complètes)",pts:2,capDay:1,after:0.5,why:"PNNS : au moins un féculent complet par jour, pour les fibres et la satiété."},
+  {id:"legum",cat:"assiette",ico:"🫘",label:"Légumineuses (lentilles, pois chiches, haricots)",pts:3,capWeek:2,after:1.5,why:"PNNS : des légumineuses au moins 2 fois par semaine."},
+  {id:"poisson",cat:"assiette",ico:"🐟",label:"Poisson (sardine, maquereau, saumon…)",pts:3,capWeek:2,after:1,why:"PNNS : du poisson 2 fois par semaine, dont un poisson gras."},
+  {id:"coque",cat:"assiette",ico:"🥜",label:"Poignée de fruits à coque non salés",pts:2,capDay:1,after:0,why:"PNNS : une petite poignée de fruits à coque sans sel ajouté par jour (noix, amandes, noisettes)."},
+  {id:"laitier",cat:"assiette",ico:"🥛",label:"Produit laitier (yaourt, fromage, lait)",pts:1,capDay:2,after:0,why:"PNNS : 2 produits laitiers par jour."},
+  {id:"huile",cat:"assiette",ico:"🫒",label:"Huile de colza, noix ou olive",pts:1,capDay:1,after:0,why:"PNNS : privilégier les huiles de colza, de noix et d'olive."},
+  {id:"maison",cat:"assiette",ico:"🍳",label:"Repas fait maison",pts:2,capDay:3,after:0,why:"PNNS : privilégier le fait maison et limiter les produits ultra-transformés."},
+  {id:"eau",cat:"assiette",ico:"💧",label:"Verre d'eau (≈ 250 ml)",pts:0.5,capDay:8,after:0,why:"PNNS : l'eau est la seule boisson recommandée, à volonté."},
+
+  {id:"marche",cat:"bouger",ico:"🚶",label:"10 min de marche ou de vélo",pts:1.5,min:10,capDay:6,after:0.5,why:"OMS : toute activité compte, même par tranches courtes. Objectif : 150 à 300 min d'activité modérée par semaine."},
+  {id:"velo",cat:"bouger",ico:"🚴",label:"Vélo",sport:"dist",pts:1,vmin:3,vmax:60,
+    curve:[[9,3.5],[15,5.8],[17.6,6.8],[20.5,8.0],[24,10.0],[28,12.0],[33,15.8]],
+    why:"Compendium des activités physiques 2024 : l'intensité du vélo dépend de la vitesse (≈ 4 MET en balade sous 16 km/h, 8 MET vers 20 km/h, 12 MET vers 28 km/h)."},
+  {id:"course",cat:"bouger",ico:"🏃",label:"Course à pied",sport:"dist",pts:1,vmin:4,vmax:25,
+    curve:[[6.4,6.0],[8,8.3],[9.7,9.8],[10.8,10.5],[11.3,11.0],[12.1,11.5],[12.9,11.8],[13.8,12.3],[14.5,12.8],[16.1,14.5],[17.7,16.0]],
+    why:"Compendium des activités physiques 2024 : courir à 8 km/h ≈ 8,3 MET, à 10 km/h ≈ 10 MET, à 13 km/h ≈ 12 MET."},
+  {id:"squash",cat:"bouger",ico:"🟡",label:"Squash",sport:"time",pts:1,
+    levels:[{id:"loisir",label:"Loisir",met:7.3},{id:"match",label:"Match",met:12.0}],
+    why:"Compendium 2024 : squash en loisir 7,3 MET, en match 12 MET. C'est l'un des sports de raquette les plus intenses."},
+  {id:"badminton",cat:"bouger",ico:"🏸",label:"Badminton",sport:"time",pts:1,
+    levels:[{id:"loisir",label:"Loisir",met:5.5},{id:"compet",label:"Soutenu",met:7.0},{id:"match",label:"Match",met:9.0}],
+    why:"Compendium 2024 : badminton en loisir 5,5 MET, compétitif 7 MET, en match 9 MET."},
+  {id:"padel",cat:"bouger",ico:"🎾",label:"Padel",sport:"time",pts:1,
+    levels:[{id:"loisir",label:"Loisir",met:6.0},{id:"match",label:"Compétitif",met:8.0}],
+    why:"Le padel n'est pas encore dans le Compendium 2024. Valeurs estimées à partir des sports proches : paddleball et tennis en double en loisir (6 MET), tennis compétitif (8 MET)."},
+  {id:"modere",cat:"bouger",hidden:true,ico:"🚴",label:"30 min d'activité modérée",pts:5,min:30,capDay:2,after:2,why:""},
+  {id:"intense",cat:"bouger",hidden:true,ico:"🏃",label:"30 min d'activité intense",pts:7,min:60,capDay:2,after:2,why:""},
+  {id:"muscu",cat:"bouger",ico:"🏋️",label:"Séance de renforcement musculaire",pts:4,capWeek:3,after:2,why:"OMS : renforcement musculaire au moins 2 jours par semaine."},
+  {id:"pause",cat:"bouger",ico:"🧍",label:"Pause active (se lever, s'étirer, escaliers)",pts:0.5,capDay:6,after:0,why:"PNNS : ne pas rester assis plus de 2 h d'affilée. Se lever et marcher quelques minutes suffit."},
+
+  {id:"sommeil",cat:"recup",ico:"😴",label:"Nuit de 7 à 9 h",pts:4,capDay:1,after:0,why:"Sociétés savantes du sommeil (AASM/SRS) : au moins 7 h par nuit pour un adulte. Le manque de sommeil augmente l'appétit et la fatigue."},
+  {id:"repas",cat:"recup",ico:"🍽️",label:"Repas à heure régulière, assis, sans écran",pts:1,capDay:3,after:0,why:"PNNS : des repas réguliers aident à réguler l'appétit et limitent le grignotage."},
+  {id:"nuitcourte",cat:"recup",ico:"🥱",label:"Nuit de moins de 6 h",pts:-4,capDay:1,after:0,why:"Moins de 6 h de sommeil est associé à plus de fringales et moins d'énergie le lendemain."},
+
+  {id:"platriche",cat:"limiter",ico:"🧀",label:"Plat riche (raclette, tartiflette…)",dish:true,pts:-1,why:"PNNS : limiter les aliments gras et salés, la charcuterie (150 g par semaine) et la viande rouge (500 g par semaine). Le premier plat riche de la semaine compte comme un écart convivial. La charcuterie et la viande du plat s'ajoutent automatiquement à tes compteurs de la semaine."},
+  {id:"fastfood",cat:"limiter",ico:"🍔",label:"Repas fast food",pts:-6,freeWeek:1,freePts:-2,why:"PNNS : limiter les produits gras, sucrés, salés et ultra-transformés. Le premier de la semaine compte comme un écart autorisé (−2)."},
+  {id:"soda",cat:"limiter",ico:"🥤",label:"Boisson sucrée (soda, jus, sirop)",pts:-3,escDay:1,escPts:-5,why:"PNNS : pas plus d'un verre de boisson sucrée par jour, jus de fruits compris. Au-delà, −5 par verre."},
+  {id:"sucre",cat:"limiter",ico:"🍩",label:"Produit sucré (gâteau, bonbons, viennoiserie)",pts:-2,why:"PNNS : limiter les produits sucrés."},
+  {id:"grignot",cat:"limiter",ico:"🍟",label:"Grignotage hors repas (chips, biscuits)",pts:-2,why:"PNNS : éviter de grignoter entre les repas, souvent des produits gras, salés ou sucrés."},
+  {id:"ultra",cat:"limiter",ico:"📦",label:"Plat industriel ultra-transformé",pts:-3,why:"PNNS : limiter les aliments ultra-transformés (liste d'ingrédients longue, additifs). Regarder le Nutri-Score aide."},
+  {id:"charcut",cat:"limiter",ico:"🥓",label:"Portion de charcuterie (≈ 50 g)",pts:-1,capWeek:3,after:-3,why:"PNNS : limiter la charcuterie à 150 g par semaine (≈ 3 portions). Au-delà, −3 par portion."},
+  {id:"viande",cat:"limiter",ico:"🥩",label:"Portion de viande rouge (bœuf, porc, agneau)",pts:-3,freeWeek:3,freePts:0,why:"PNNS : limiter la viande rouge à 500 g par semaine (≈ 3 portions). Les 3 premières de la semaine ne coûtent rien."},
+  {id:"alcool",cat:"limiter",ico:"🍺",label:"Verre d'alcool",pts:-3,escDay:2,escPts:-6,why:"Santé publique France : maximum 10 verres par semaine, 2 par jour, et pas tous les jours. Au-delà de 2 dans la journée, −6 par verre."},
+  {id:"sel",cat:"limiter",ico:"🧂",label:"Plat très salé ou sel ajouté",pts:-1,why:"PNNS : réduire le sel, notamment celui des plats préparés et du pain."},
+  {id:"assis",cat:"limiter",ico:"🛋️",label:"Journée de plus de 7 h assis",pts:-2,capDay:1,after:0,why:"PNNS : réduire le temps passé assis. Il augmente les risques même chez les personnes sportives."}
+];
+const BYID=Object.fromEntries(ACTIONS.map(a=>[a.id,a]));
+
+function pointsFor(a,n,w){
+  if(a.freeWeek!=null && w<a.freeWeek) return a.freePts;
+  if(a.capDay!=null && n>=a.capDay) return a.after;
+  if(a.capWeek!=null && w>=a.capWeek) return a.after;
+  if(a.escDay!=null && n>=a.escDay) return a.escPts;
+  return a.pts;
+}
+/* Plats riches : pts = pénalité normale, first = 1er plat riche de la semaine,
+   charc / viande = portions (≈ 50 g / ≈ 120 g) ajoutées aux compteurs de la semaine */
+const DISHES=[
+  {id:"raclette",label:"Raclette",pts:-6,first:-2,charc:2,viande:0,note:"≈ 200 g de fromage et 100 g de charcuterie par personne : très gras et très salé."},
+  {id:"tartiflette",label:"Tartiflette",pts:-6,first:-2,charc:1,viande:0,note:"Reblochon, lardons et crème : très riche en graisses saturées."},
+  {id:"fondue",label:"Fondue savoyarde",pts:-6,first:-2,charc:1,viande:0,note:"≈ 200 g de fromage fondu par personne, souvent avec de la charcuterie."},
+  {id:"croziflette",label:"Croziflette",pts:-5,first:-2,charc:1,viande:0,note:"Proche de la tartiflette, avec des pâtes au lieu des pommes de terre."},
+  {id:"fondueb",label:"Fondue bourguignonne",pts:-5,first:-2,charc:0,viande:2,note:"Viande rouge cuite dans l'huile, avec des sauces grasses."},
+  {id:"choucroute",label:"Choucroute garnie",pts:-4,first:-1,charc:3,viande:0,note:"Le chou est un légume, mais les saucisses et le lard comptent pour environ 150 g de charcuterie."},
+  {id:"cassoulet",label:"Cassoulet",pts:-4,first:-1,charc:2,viande:0,note:"Les haricots sont des légumineuses, mais saucisse, confit et lard le rendent très gras."},
+  {id:"pizza",label:"Pizza (restaurant ou surgelée)",pts:-4,first:-1,charc:1,viande:0,note:"Pâte blanche, fromage et charcuterie, souvent très salée."},
+  {id:"fish",label:"Friture (fish & chips, beignets)",pts:-4,first:-1,charc:0,viande:0,note:"Cuisson dans l'huile qui fait beaucoup grimper les graisses."},
+  {id:"quiche",label:"Quiche lorraine",pts:-3,first:-1,charc:1,viande:0,note:"Pâte brisée, crème et lardons."},
+  {id:"carbo",label:"Pâtes carbonara (à la crème)",pts:-3,first:-1,charc:1,viande:0,note:"Crème, lardons et fromage."},
+  {id:"lasagnes",label:"Lasagnes / gratin de pâtes",pts:-3,first:-1,charc:0,viande:1,note:"Béchamel, fromage gratiné et viande hachée."},
+  {id:"gratin",label:"Gratin dauphinois",pts:-3,first:-1,charc:0,viande:0,note:"Crème et fromage en quantité."},
+  {id:"couscous",label:"Couscous royal",pts:-2,first:-1,charc:1,viande:1,note:"Légumes et semoule sont un bon point, merguez et viande rouge moins."},
+  {id:"galette",label:"Galette complète / crêpes salées",pts:-2,first:-1,charc:1,viande:0,note:"Jambon, fromage et beurre de cuisson."},
+  {id:"autre",label:"Autre plat riche",pts:-5,first:-2,charc:0,viande:0,note:"Pour un plat gras ou très copieux qui n'est pas dans la liste."}
+];
+const DBYID=Object.fromEntries(DISHES.map(d=>[d.id,d]));
+const SIZES=[{id:"petite",label:"Petite",m:0.5},{id:"normale",label:"Normale",m:1},{id:"grosse",label:"Grosse / resservi",m:1.5}];
+function dishCalc(e,w,cw,vw){
+  const d=DBYID[e.dish]||DBYID.autre,s=SIZES.find(x=>x.id===e.size)||SIZES[1];
+  let p=(w<1?d.first:d.pts)*s.m;
+  const charc=Math.round(d.charc*s.m),viande=Math.round(d.viande*s.m);
+  const overC=Math.max(0,cw+charc-3)-Math.max(0,cw-3);
+  const overV=Math.max(0,vw+viande-3)-Math.max(0,vw-3);
+  p+=overC*-2+overV*-3;
+  return{p:Math.round(p*2)/2,charc,viande,overC,overV,first:w<1,d,s};
+}
+/* Sports mesurés : points = MET × minutes ÷ 35 ; jusqu'à +10 par jour à plein tarif, puis 30 % */
+const SPORT_DIV=35,SPORT_CAP=10,SPORT_AFTER=0.3;
+function interp(curve,x){
+  if(x<=curve[0][0])return curve[0][1]*Math.max(0.6,x/curve[0][0]);
+  for(let i=1;i<curve.length;i++){if(x<=curve[i][0]){const[a,b]=[curve[i-1],curve[i]];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}}
+  const n=curve.length,a=curve[n-2],b=curve[n-1];return b[1]+(b[1]-a[1])/(b[0]-a[0])*(x-b[0]);
+}
+function sportInfo(a,e){
+  let met,min;
+  if(a.sport==="dist"){const km=+e.km||0,v=+e.v||0;if(!(km>0&&v>0))return null;min=km/v*60;met=interp(a.curve,v);}
+  else{min=+e.min||0;if(!(min>0))return null;const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];met=l.met;}
+  const raw=met*min/SPORT_DIV;
+  const omsMin=min*(met>=6?2:met>=3?1:0);
+  return{met,min,raw,omsMin,intensity:met>=6?"intense":met>=3?"modérée":"légère"};
+}
+function sportPts(raw,prevRaw){const full=clamp(SPORT_CAP-prevRaw,0,raw);return Math.round((full+(raw-full)*SPORT_AFTER)*10)/10;}
+function entryLabel(a,e){
+  if(a.sport==="dist")return `${a.label} · ${String(e.km).replace(".",",")} km à ${String(e.v).replace(".",",")} km/h`;
+  if(a.dish){const d=DBYID[e.dish]||DBYID.autre,s=SIZES.find(x=>x.id===e.size)||SIZES[1];return `${d.label}${s.id==="normale"?"":" · portion "+s.label.toLowerCase().split(" ")[0]}`;}
+  if(a.sport==="time"){const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];return `${a.label} · ${e.min} min, ${l.label.toLowerCase()}`;}
+  return a.label;
+}
+function ruleText(a){
+  const f=fmt;
+  if(a.dish)return `Chaque plat de la liste a sa pénalité (de −2 à −6), réduite pour le premier plat riche de la semaine. Petite portion ×0,5, grosse ×1,5. Chaque portion de charcuterie au-delà de 3 dans la semaine coûte −2 de plus, chaque portion de viande rouge au-delà de 3 coûte −3 de plus.`;
+  if(a.sport)return `Points = MET × minutes ÷ ${SPORT_DIV}. Jusqu'à +${SPORT_CAP} de sport par jour à plein tarif, puis 30 % (l'OMS note que les bénéfices augmentent moins au-delà de 300 min par semaine). Pour la quête de la semaine, une minute intense (6 MET ou plus) compte double.`;
+  if(a.freeWeek!=null) return `${a.freeWeek===1?"Le premier":"Les "+a.freeWeek+" premiers"} de la semaine : ${f(a.freePts)}. Ensuite : ${f(a.pts)}.`;
+  if(a.capDay!=null) return `${f(a.pts)} jusqu'à ${a.capDay} par jour, puis ${f(a.after)}.`;
+  if(a.capWeek!=null) return `${f(a.pts)} jusqu'à ${a.capWeek} par semaine, puis ${f(a.after)}.`;
+  if(a.escDay!=null) return `${f(a.pts)} jusqu'à ${a.escDay} par jour, puis ${f(a.escPts)}.`;
+  return `${f(a.pts)} à chaque fois.`;
+}
+
+/* ---------- Dates ---------- */
+function dk(t){return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");}
+function pk(k){const p=k.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function addDays(k,n){const t=pk(k);t.setDate(t.getDate()+n);return dk(t);}
+function weekOf(k){const t=pk(k);t.setDate(t.getDate()-((t.getDay()+6)%7));return dk(t);}
+function today(){return dk(new Date());}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function fmt(p){const r=Math.round(p*10)/10;const s=(Math.abs(r)%1?Math.abs(r).toFixed(1):String(Math.abs(r))).replace(".",",");return (r>0?"+":r<0?"−":"")+s;}
+function fmtAvg(v){return v==null?"–":fmt(v);}
+
+/* ---------- État ---------- */
+let entries=[];
+const ui={cat:"assiette",day:"today",range:"jours",info:null};
+const LS="queteForme.v1";
+try{const r=localStorage.getItem(LS);if(r){const j=JSON.parse(r);if(Array.isArray(j.entries))entries=j.entries;}}catch(e){}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify({entries}));}catch(e){}}
+
+/* ---------- Calculs ---------- */
+function compute(){
+  const sorted=entries.filter(e=>BYID[e.a]&&typeof e.d==="string").slice()
+    .sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:x.ts-y.ts);
+  const dc={},wc={},days={},pts={},sraw={};
+  for(const e of sorted){
+    const a=BYID[e.a],wk=weekOf(e.d);
+    const kd=e.d+"|"+a.id,kw=wk+"|"+a.id;
+    const n=dc[kd]||0,w=wc[kw]||0;
+    let p,m=a.min||0;
+    if(a.sport){const s=sportInfo(a,e);if(!s)continue;const prev=sraw[e.d]||0;p=sportPts(s.raw,prev);sraw[e.d]=prev+s.raw;m=s.omsMin;}
+    else if(a.dish){const kc=wk+"|charcut",kv=wk+"|viande";const r=dishCalc(e,w,wc[kc]||0,wc[kv]||0);p=r.p;wc[kc]=(wc[kc]||0)+r.charc;wc[kv]=(wc[kv]||0)+r.viande;}
+    else p=pointsFor(a,n,w);
+    dc[kd]=n+1;wc[kw]=w+1;pts[e.id]=p;
+    const d=days[e.d]||(days[e.d]={net:0,pos:0,min:0,counts:{},list:[]});
+    d.net+=p;if(p>0)d.pos+=p;d.min+=m;d.counts[a.id]=(d.counts[a.id]||0)+1;d.list.push({e,p});
+  }
+  return {days,dc,wc,pts,sraw,first:sorted.length?sorted[0].d:null};
+}
+function formeAt(days,K){
+  let sw=0,s=0;
+  for(let i=0;i<30;i++){const d=days[addDays(K,-i)];if(!d)continue;const w=Math.pow(0.5,i/5);sw+=w;s+=w*d.net;}
+  return sw?clamp(50+1.6*s/sw,0,100):50;
+}
+function avgNet(days,K,n){let s=0,c=0;for(let i=0;i<n;i++){const d=days[addDays(K,-i)];if(d){s+=d.net;c++;}}return c?s/c:null;}
+function questsFor(days,wk){
+  let min=0,fl5=0,poisson=0,legum=0,muscu=0,ff=0,alc=0,any=false;
+  for(let i=0;i<7;i++){const d=days[addDays(wk,i)];if(!d)continue;any=true;const c=d.counts;
+    min+=d.min;if((c.fl||0)>=5)fl5++;poisson+=c.poisson||0;legum+=c.legum||0;muscu+=c.muscu||0;ff+=c.fastfood||0;alc+=c.alcool||0;}
+  return {any,list:[
+    {label:"150 min d'activité (1 min intense = 2 min)",val:Math.round(min),goal:150,unit:" min",src:"OMS"},
+    {label:"5 jours avec 5 fruits et légumes",val:fl5,goal:5,unit:" j",src:"PNNS"},
+    {label:"2 portions de poisson",val:poisson,goal:2,src:"PNNS"},
+    {label:"2 portions de légumineuses",val:legum,goal:2,src:"PNNS"},
+    {label:"2 séances de renforcement",val:muscu,goal:2,src:"OMS"},
+    {label:"1 fast food au maximum",val:ff,goal:1,max:true,src:"Écart autorisé"},
+    {label:"10 verres d'alcool au maximum",val:alc,goal:10,max:true,src:"Santé publique France"}
+  ]};
+}
+function xpLevel(C){
+  let xp=0;for(const k in C.days)xp+=C.days[k].pos*10;
+  if(C.first){const cur=weekOf(today());for(let wk=weekOf(C.first);wk<=cur;wk=addDays(wk,7)){
+    const q=questsFor(C.days,wk);if(!q.any)continue;
+    for(const it of q.list){if(it.max){if(wk<cur&&it.val<=it.goal)xp+=100;}else if(it.val>=it.goal)xp+=100;}}}
+  xp=Math.round(xp);
+  const lvl=Math.floor(Math.sqrt(xp/150))+1;const lo=150*(lvl-1)*(lvl-1),hi=150*lvl*lvl;
+  return {xp,lvl,lo,hi};
+}
+function streak(days){
+  let k=today(),s=0;
+  if(!(days[k]&&days[k].net>=10))k=addDays(k,-1);
+  while(days[k]&&days[k].net>=10){s++;k=addDays(k,-1);}
+  return s;
+}
+function band(v){
+  if(v>=80)return{t:"SUPER FORME",c:"var(--good)"};
+  if(v>=60)return{t:"EN FORME",c:"#a6e35b"};
+  if(v>=40)return{t:"MOYEN",c:"var(--gold)"};
+  if(v>=20)return{t:"FATIGUÉ",c:"var(--warn)"};
+  return{t:"À PLAT",c:"var(--bad)"};
+}
+
+/* ---------- Rendu ---------- */
+const $=id=>document.getElementById(id);
+const gauge=$("gauge");for(let i=0;i<20;i++)gauge.appendChild(document.createElement("i"));
+let lastLvl=null,lastHp=null;
+
+function selDay(){return ui.day==="today"?today():addDays(today(),-1);}
+
+function render(){
+  const C=compute(),T=today(),hp=formeAt(C.days,T),b=band(hp);
+  $("hp").innerHTML=Math.round(hp)+"<small>/100</small>";
+  const st=$("status");st.textContent=b.t;st.style.color=b.c;
+  const segs=gauge.children,on=Math.round(hp/5);
+  for(let i=0;i<20;i++)segs[i].style.background=i<on?b.c:"";
+  gauge.setAttribute("aria-valuenow",Math.round(hp));
+  const prev=formeAt(C.days,addDays(T,-7)),diff=Math.round(hp-prev);
+  $("trend").textContent=C.first?(diff===0?"= stable sur 7 jours":(diff>0?"▲ +":"▼ −")+Math.abs(diff)+" en 7 jours"):"Pas encore de données";
+  const td=C.days[T];
+  const sT=$("sToday");sT.textContent=td?fmt(td.net):"0";sT.style.color=td?(td.net>0?"var(--good)":td.net<0?"var(--bad)":""):"";
+  $("s7").textContent=fmtAvg(avgNet(C.days,T,7));
+  $("s30").textContent=fmtAvg(avgNet(C.days,T,30));
+  $("sStreak").textContent=streak(C.days)+" j";
+  const X=xpLevel(C);
+  $("lvl").textContent="NIVEAU "+X.lvl;
+  $("xpTxt").textContent=(X.xp-X.lo)+" / "+(X.hi-X.lo)+" XP";
+  $("xpFill").style.width=clamp((X.xp-X.lo)/(X.hi-X.lo)*100,0,100)+"%";
+  if(lastLvl!=null&&X.lvl>lastLvl)levelUp(X.lvl);
+  lastLvl=X.lvl;
+  if(lastHp!=null&&Math.round(hp)!==Math.round(lastHp)){gauge.classList.remove("hit","up");void gauge.offsetWidth;gauge.classList.add(hp<lastHp?"hit":"up");}
+  lastHp=hp;
+
+  renderTabs();renderActs(C);renderLog(C);renderQuests(C);renderCharts(C);
+}
+function renderTabs(){
+  $("tabs").innerHTML=CATS.map(c=>`<button data-c="${c.id}" class="${c.lim?"lim":""}" aria-pressed="${ui.cat===c.id}">${c.label}</button>`).join("");
+}
+function renderActs(C){
+  const D=selDay(),wk=weekOf(D);
+  $("acts").innerHTML=ACTIONS.filter(a=>a.cat===ui.cat&&!a.hidden).map(a=>{
+    const n=C.dc[D+"|"+a.id]||0,w=C.wc[wk+"|"+a.id]||0,p=a.sport?1:a.dish?-1:pointsFor(a,n,w);
+    const cls=p>0?"pos":p<0?"neg":"zero";
+    const kind=a.pts>0?"good":"bad";
+    const cnt=n?`×${n} ${ui.day==="today"?"aujourd'hui":"hier"}`:(w?`×${w} cette semaine`:"");
+    const ptxt=a.sport?(a.sport==="dist"?"+ selon km et vitesse":"+ selon durée et niveau"):a.dish?"− selon le plat":fmt(p);
+    return `<button class="act ${kind}" data-a="${a.id}" aria-label="${a.label}, ${a.sport?"points selon l'effort":a.dish?"points selon le plat":fmt(p)+" points"}">
+      <span class="ico" aria-hidden="true">${a.ico}</span>
+      <span class="lbl">${a.label}</span>
+      <span class="pts ${cls}">${ptxt}</span>
+      <span class="cnt">${cnt}</span>
+      <span class="why" data-why="${a.id}" role="button" tabindex="0" aria-label="D'où viennent les points">?</span>
+    </button>`;}).join("");
+  const info=$("info");
+  if(ui.info&&BYID[ui.info]){const a=BYID[ui.info];info.innerHTML=`<p><b>${a.ico} ${a.label}</b></p><p>${a.why}</p><p><b>Règle :</b> ${ruleText(a)}</p>`;}
+  else info.innerHTML="Touche une action pour l'enregistrer. Le bouton <b>?</b> explique d'où viennent les points.";
+}
+function renderLog(C){
+  const D=selDay(),d=C.days[D];
+  $("logTitle").textContent=ui.day==="today"?"JOURNAL D'AUJOURD'HUI":"JOURNAL D'HIER";
+  const ds=$("daysum");ds.textContent=d?fmt(d.net):"0";ds.style.color=d?(d.net>=10?"var(--good)":d.net<0?"var(--bad)":"var(--gold)"):"";
+  $("daysumTxt").textContent=d&&d.net>=10?"Total du jour · bon jour":"Total du jour (bon jour à partir de +10)";
+  if(!d){$("log").innerHTML=`<li style="background:none;padding:0"><p class="empty">Rien de noté pour l'instant. Commence par ce que tu as déjà fait : un verre d'eau, une marche, ta nuit de sommeil…</p></li>`;return;}
+  $("log").innerHTML=d.list.slice().reverse().map(({e,p})=>{const a=BYID[e.a];const h=new Date(e.ts);
+    const hh=ui.day==="today"?String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"):"";
+    return `<li><span class="p" style="color:${p>0?"var(--good)":p<0?"var(--bad)":"var(--muted)"}">${fmt(p)}</span><span class="t">${a.ico} ${entryLabel(a,e)}</span><span class="h">${hh}</span><button data-del="${e.id}" aria-label="Supprimer ${a.label}">✕</button></li>`;}).join("");
+}
+function renderQuests(C){
+  const T=today(),q=questsFor(C.days,weekOf(T));
+  $("quests").innerHTML=q.list.map(it=>{
+    let tag,cls;
+    if(it.max){if(it.val>it.goal){tag="RATÉE";cls="fail";}else{tag="TENUE";cls="run";}}
+    else if(it.val>=it.goal){tag="RÉUSSIE";cls="done";}else{tag="EN COURS";cls="run";}
+    const pct=it.max?clamp(it.val/it.goal*100,0,100):clamp(it.val/it.goal*100,0,100);
+    const shown=Math.round(it.val*10)/10;
+    return `<div class="q ${it.max?"max":""}"><div class="q-top"><span>${it.label}</span><span class="tag ${cls}">${tag}</span></div>
+      <div class="qbar"><div style="width:${pct}%"></div></div>
+      <small>${shown}${it.unit||""} / ${it.goal}${it.unit||""} · ${it.src}</small></div>`;}).join("");
+}
+
+/* ---------- Graphiques ---------- */
+function renderCharts(C){
+  const T=today(),W=600,H=190,L=34,R=10,Tp=12,B=26,iw=W-L-R,ih=H-Tp-B;
+  // Ligne Forme 30 j
+  let s=`<g>`;
+  [0,50,100].forEach(v=>{const y=Tp+ih-(v/100)*ih;s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#40366b" stroke-dasharray="${v===50?"4 4":"0"}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${v}</text>`;});
+  const pts=[];
+  for(let i=29;i>=0;i--){const k=addDays(T,-i);if(C.first&&k>=C.first)pts.push({i:29-i,v:formeAt(C.days,k),k});}
+  const X=i=>L+i*(iw/29),Y=v=>Tp+ih-(v/100)*ih;
+  if(pts.length){
+    const path=pts.map((p,j)=>(j?"L":"M")+X(p.i).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ");
+    const area=path+` L${X(pts[pts.length-1].i).toFixed(1)} ${Tp+ih} L${X(pts[0].i).toFixed(1)} ${Tp+ih} Z`;
+    s+=`<path d="${area}" fill="#62d0ff" opacity=".14"/><path d="${path}" fill="none" stroke="#62d0ff" stroke-width="3"/>`;
+    const e=pts[pts.length-1];s+=`<rect x="${X(e.i)-5}" y="${Y(e.v)-5}" width="10" height="10" fill="#ffc94a" stroke="#000" stroke-width="2"/><text x="${Math.min(X(e.i),W-R-24)}" y="${Math.max(Y(e.v)-10,Tp+10)}" text-anchor="end" style="fill:#ffc94a">${Math.round(e.v)}</text>`;
+  } else s+=`<text x="${L+iw/2}" y="${Tp+ih/2}" text-anchor="middle">La courbe apparaîtra après ta première action</text>`;
+  [[0,"−29 j"],[14,"−15 j"],[29,"auj."]].forEach(([i,t])=>{s+=`<text x="${X(i)}" y="${H-6}" text-anchor="${i===0?"start":i===29?"end":"middle"}">${t}</text>`;});
+  $("lineChart").innerHTML=s+"</g>";
+
+  // Barres
+  let bars=[];
+  if(ui.range==="jours"){
+    for(let i=29;i>=0;i--){const k=addDays(T,-i);const d=C.days[k];const t=pk(k);bars.push({v:d?d.net:null,l:t.getDate()+"/"+(t.getMonth()+1)});}
+    $("barLegend").textContent="Points nets par jour (30 jours)";
+  } else if(ui.range==="semaines"){
+    const cw=weekOf(T);for(let i=11;i>=0;i--){const wk=addDays(cw,-7*i);let sum=0,c=0;for(let j=0;j<7;j++){const d=C.days[addDays(wk,j)];if(d){sum+=d.net;c++;}}const t=pk(wk);bars.push({v:c?sum/c:null,l:t.getDate()+"/"+(t.getMonth()+1)});}
+    $("barLegend").textContent="Moyenne de points nets par jour noté, par semaine (12 semaines)";
+  } else {
+    const now=new Date();const MO=["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+    for(let i=11;i>=0;i--){const t=new Date(now.getFullYear(),now.getMonth()-i,1);const pre=dk(t).slice(0,7);let sum=0,c=0;for(const k in C.days)if(k.slice(0,7)===pre){sum+=C.days[k].net;c++;}bars.push({v:c?sum/c:null,l:MO[t.getMonth()]});}
+    $("barLegend").textContent="Moyenne de points nets par jour noté, par mois (12 mois)";
+  }
+  const mAbs=Math.max(10,...bars.map(b=>b.v==null?0:Math.abs(b.v)));const M=Math.ceil(mAbs/10)*10;
+  const Yb=v=>Tp+ih/2-(v/M)*(ih/2);
+  let g=`<g>`;
+  [M,0,-M].forEach(v=>{const y=Yb(v);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="${v===0?"#6a5ea0":"#40366b"}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${v>0?"+"+v:v<0?"−"+Math.abs(v):0}</text>`;});
+  const n=bars.length,bw=iw/n;
+  bars.forEach((b,i)=>{
+    const x=L+i*bw+bw*0.18,w=bw*0.64;
+    if(b.v!=null&&b.v!==0){const y0=Yb(0),y1=Yb(b.v);g+=`<rect x="${x.toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(2,Math.abs(y1-y0)).toFixed(1)}" fill="${b.v>0?"#4fe08a":"#ff5a6e"}"/>`;}
+    else if(b.v===0){g+=`<rect x="${x.toFixed(1)}" y="${(Yb(0)-1).toFixed(1)}" width="${w.toFixed(1)}" height="2" fill="#a99fcb"/>`;}
+    const step=n>12?7:n>6?2:1;
+    if(i%step===(n-1)%step)g+=`<text x="${(L+i*bw+bw/2).toFixed(1)}" y="${H-6}" text-anchor="middle">${b.l}</text>`;
+  });
+  if(!bars.some(b=>b.v!=null))g+=`<text x="${L+iw/2}" y="${Tp+ih/2-8}" text-anchor="middle">Pas encore de données</text>`;
+  $("barChart").innerHTML=g+"</g>";
+}
+
+/* ---------- Effets ---------- */
+function floatAt(el,p){
+  const r=el.getBoundingClientRect(),f=document.createElement("span");
+  f.className="float";f.textContent=fmt(p);f.style.color=p>0?"var(--good)":p<0?"var(--bad)":"var(--muted)";
+  f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top+8)+"px";
+  document.body.appendChild(f);setTimeout(()=>f.remove(),950);
+}
+let toastT=null;
+function toast(html,undoId){
+  let t=document.querySelector(".toast");if(t)t.remove();clearTimeout(toastT);
+  t=document.createElement("div");t.className="toast";t.innerHTML=`<span>${html}</span>`+(undoId?`<button id="undo">ANNULER</button>`:"");
+  document.body.appendChild(t);
+  if(undoId)$("undo").onclick=()=>{removeEntry(undoId);t.remove();};
+  toastT=setTimeout(()=>t.remove(),4000);
+}
+function levelUp(l){const o=document.createElement("div");o.className="levelup";o.innerHTML=`<div>NIVEAU ${l} !</div>`;document.body.appendChild(o);setTimeout(()=>o.remove(),1700);}
+
+/* ---------- Actions ---------- */
+function rid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function addEntry(aid,el,extra){
+  const D=selDay(),a=BYID[aid];
+  if(a.sport&&!extra){openSport(aid,el);return;}
+  if(a.dish&&!extra){openDish(el);return;}
+  const salad=extra&&extra.salad;if(extra)delete extra.salad;
+  const now=Date.now();
+  const e=Object.assign({id:rid(),a:aid,ts:now,d:D},extra||{});
+  entries.push(e);
+  let s2=null;if(salad){s2={id:rid(),a:"fl",ts:now+1,d:D};entries.push(s2);}
+  saveLocal();markDirty(D);
+  const P=compute().pts;let p=P[e.id]||0;if(s2)p+=P[s2.id]||0;
+  render();
+  if(el)floatAt(el,p);
+  toast(`${fmt(p)} · ${entryLabel(a,e)}${s2?" + salade verte":""}`,s2?null:e.id);
+}
+
+/* ---------- Formulaire plat riche ---------- */
+function openDish(el){
+  const a=BYID.platriche;let last={};try{last=JSON.parse(localStorage.getItem("queteForme.last.dish")||"{}");}catch(e){}
+  const st={dish:last.dish||"raclette",size:"normale",salad:false};
+  const box=$("sport");sp={a,el};
+  box.innerHTML=`<form class="sheet" id="dForm" aria-labelledby="dTitle">
+    <h2 id="dTitle">🧀 PLAT RICHE</h2>
+    <div class="fields">
+      <label for="dDish">Quel plat ?</label>
+      <select id="dDish">${DISHES.map(d=>`<option value="${d.id}"${d.id===st.dish?" selected":""}>${d.label}</option>`).join("")}</select>
+      <span class="flabel">Portion</span>
+      <div class="seg" id="dSize" role="group" aria-label="Portion">${SIZES.map(s=>`<button type="button" data-size="${s.id}" aria-pressed="${s.id===st.size}">${s.label}</button>`).join("")}</div>
+      <label class="check" for="dSalad"><input id="dSalad" type="checkbox"> Avec une salade verte ou des crudités (+ 1 portion de légumes)</label>
+    </div>
+    <div class="preview" id="dPrev"></div>
+    <p class="note" id="dNote"></p>
+    <div class="row"><button type="button" class="btn ghost" id="dCancel">Annuler</button><button type="submit" class="btn">Valider</button></div>
+  </form>`;
+  box.hidden=false;
+  const upd=()=>{
+    st.dish=$("dDish").value;st.salad=$("dSalad").checked;
+    const D=selDay(),wk=weekOf(D),C=compute();
+    const r=dishCalc({dish:st.dish,size:st.size},C.wc[wk+"|platriche"]||0,C.wc[wk+"|charcut"]||0,C.wc[wk+"|viande"]||0);
+    const flN=C.dc[D+"|fl"]||0,sal=st.salad?pointsFor(BYID.fl,flN,0):0;
+    const tot=r.p+sal;
+    $("dPrev").innerHTML=`<div><span>Plat</span><b style="color:var(--bad)">${fmt(r.p)}</b></div>
+      <div><span>Salade</span><b style="color:var(--good)">${st.salad?fmt(sal):"–"}</b></div>
+      <div><span>Charcuterie semaine</span><b>${(C.wc[wk+"|charcut"]||0)+r.charc} / 3 portions</b></div>
+      <div><span>Total</span><b style="color:${tot<0?"var(--bad)":"var(--good)"}">${fmt(tot)}</b></div>`;
+    $("dNote").textContent=r.d.note+(r.first?" Premier plat riche de la semaine : pénalité réduite.":"")+(r.overC?` Dépasse la limite de charcuterie de la semaine (${r.overC} portion${r.overC>1?"s":""} en trop).`:"")+(r.overV?` Dépasse la limite de viande rouge de la semaine.`:"");
+  };
+  $("dDish").addEventListener("change",upd);$("dSalad").addEventListener("change",upd);
+  $("dSize").addEventListener("click",ev=>{const b=ev.target.closest("[data-size]");if(!b)return;st.size=b.dataset.size;$("dSize").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.size===st.size));upd();});
+  $("dCancel").onclick=closeSport;box.onclick=ev=>{if(ev.target===box)closeSport();};
+  $("dForm").addEventListener("submit",ev=>{ev.preventDefault();upd();
+    try{localStorage.setItem("queteForme.last.dish",JSON.stringify({dish:st.dish}));}catch(e){}
+    const el2=sp.el;closeSport();addEntry("platriche",el2,{dish:st.dish,size:st.size,salad:st.salad});});
+  upd();$("dDish").focus();
+}
+
+/* ---------- Formulaire sport ---------- */
+let sp=null;
+function lastSport(id){try{return JSON.parse(localStorage.getItem("queteForme.last."+id)||"null");}catch(e){return null;}}
+function openSport(aid,el){
+  const a=BYID[aid],last=lastSport(aid)||{};
+  sp={a,el,km:last.km??(aid==="course"?5:15),v:last.v??(aid==="course"?10:18),min:last.min??60,lvl:last.lvl??a.levels?.[0].id};
+  const box=$("sport");
+  const fields=a.sport==="dist"?`
+      <label for="spKm">Distance (km)</label><input id="spKm" type="number" inputmode="decimal" min="0.1" max="300" step="0.1" value="${sp.km}">
+      <label for="spV">Vitesse moyenne (km/h)</label><input id="spV" type="number" inputmode="decimal" min="${a.vmin}" max="${a.vmax}" step="0.1" value="${sp.v}">`
+    :`<label for="spMin">Durée (minutes)</label><input id="spMin" type="number" inputmode="numeric" min="5" max="300" step="5" value="${sp.min}">
+      <span class="flabel">Intensité</span><div class="seg" id="spLvl" role="group" aria-label="Intensité">${a.levels.map(l=>`<button type="button" data-lvl="${l.id}" aria-pressed="${l.id===sp.lvl}">${l.label} · ${String(l.met).replace(".",",")} MET</button>`).join("")}</div>`;
+  box.innerHTML=`<form class="sheet" id="spForm" aria-labelledby="spTitle">
+    <h2 id="spTitle">${a.ico} ${a.label.toUpperCase()}</h2>
+    <div class="fields">${fields}</div>
+    <div class="preview" id="spPrev"></div>
+    <p class="note">${a.why}</p>
+    <div class="row"><button type="button" class="btn ghost" id="spCancel">Annuler</button><button type="submit" class="btn" id="spOk">Valider</button></div>
+  </form>`;
+  box.hidden=false;
+  const upd=()=>{
+    if(a.sport==="dist"){sp.km=parseFloat(String($("spKm").value).replace(",","."));sp.v=parseFloat(String($("spV").value).replace(",","."));}
+    else sp.min=parseInt($("spMin").value,10);
+    const e=a.sport==="dist"?{km:sp.km,v:sp.v}:{min:sp.min,lvl:sp.lvl};
+    const valid=a.sport==="dist"?(sp.km>0&&sp.km<=300&&sp.v>=a.vmin&&sp.v<=a.vmax):(sp.min>=1&&sp.min<=300);
+    const prev=$("spPrev");$("spOk").disabled=!valid;
+    if(!valid){prev.innerHTML=a.sport==="dist"?`Entre une distance et une vitesse entre ${a.vmin} et ${a.vmax} km/h.`:"Entre une durée entre 1 et 300 minutes.";return;}
+    const s=sportInfo(a,e),C=compute(),p=sportPts(s.raw,C.sraw[selDay()]||0);
+    const h=Math.floor(s.min/60),mn=Math.round(s.min%60);
+    prev.innerHTML=`<div><span>Durée</span><b>${h?h+" h "+String(mn).padStart(2,"0"):mn+" min"}</b></div>
+      <div><span>Intensité</span><b>${s.met.toFixed(1).replace(".",",")} MET · ${s.intensity}</b></div>
+      <div><span>Quête OMS</span><b>+${Math.round(s.omsMin)} min</b></div>
+      <div><span>Points</span><b style="color:var(--good)">${fmt(p)}</b></div>`;
+  };
+  box.querySelectorAll("input").forEach(i=>i.addEventListener("input",upd));
+  const lv=$("spLvl");if(lv)lv.addEventListener("click",ev=>{const b=ev.target.closest("[data-lvl]");if(!b)return;sp.lvl=b.dataset.lvl;lv.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.lvl===sp.lvl));upd();});
+  $("spCancel").onclick=closeSport;
+  box.onclick=ev=>{if(ev.target===box)closeSport();};
+  $("spForm").addEventListener("submit",ev=>{ev.preventDefault();upd();if($("spOk").disabled)return;
+    const extra=a.sport==="dist"?{km:Math.round(sp.km*10)/10,v:Math.round(sp.v*10)/10}:{min:sp.min,lvl:sp.lvl};
+    try{localStorage.setItem("queteForme.last."+a.id,JSON.stringify(extra));}catch(e){}
+    const el2=sp.el;closeSport();addEntry(a.id,el2,extra);});
+  upd();
+  const first=box.querySelector("input");if(first)first.focus();
+}
+function closeSport(){const box=$("sport");box.hidden=true;box.innerHTML="";sp=null;}
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&sp)closeSport();});
+function removeEntry(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  entries=entries.filter(x=>x.id!==id);saveLocal();markDirty(e.d);render();
+}
+
+document.addEventListener("click",ev=>{
+  const why=ev.target.closest("[data-why]");
+  if(why){ev.stopPropagation();ui.info=ui.info===why.dataset.why?null:why.dataset.why;render();return;}
+  const act=ev.target.closest("[data-a]");if(act){addEntry(act.dataset.a,act);return;}
+  const del=ev.target.closest("[data-del]");if(del){removeEntry(del.dataset.del);return;}
+  const tab=ev.target.closest("[data-c]");if(tab){ui.cat=tab.dataset.c;ui.info=null;render();return;}
+  const rg=ev.target.closest("[data-r]");if(rg){ui.range=rg.dataset.r;document.querySelectorAll("[data-r]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.r===ui.range));render();return;}
+});
+document.addEventListener("keydown",ev=>{const why=ev.target.closest&&ev.target.closest("[data-why]");if(why&&(ev.key==="Enter"||ev.key===" ")){ev.preventDefault();ev.stopPropagation();ui.info=ui.info===why.dataset.why?null:why.dataset.why;render();}},true);
+$("dToday").onclick=()=>{ui.day="today";$("dToday").setAttribute("aria-pressed","true");$("dYest").setAttribute("aria-pressed","false");render();};
+$("dYest").onclick=()=>{ui.day="yest";$("dYest").setAttribute("aria-pressed","true");$("dToday").setAttribute("aria-pressed","false");render();};
+
+/* ---------- Sauvegarde locale + export / import ---------- */
+function markDirty(){}
+function setSync(){const c=$("sync");c.textContent="Données sur cet appareil";c.className="chip ok";}
+function stamp(){const t=new Date();return dk(t)+"_"+String(t.getHours()).padStart(2,"0")+String(t.getMinutes()).padStart(2,"0");}
+$("bkExport").onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:"quete-forme",v:1,exported:Date.now(),entries},null,0)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),l=document.createElement("a");
+  l.href=url;l.download="quete-forme-sauvegarde-"+stamp()+".json";document.body.appendChild(l);l.click();l.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  try{localStorage.setItem("queteForme.lastBackup",String(Date.now()));}catch(e){}
+  renderBackup();
+};
+$("bkImport").onchange=async ev=>{
+  const f=ev.target.files[0];ev.target.value="";if(!f)return;
+  try{
+    const j=JSON.parse(await f.text());const list=Array.isArray(j)?j:j.entries;
+    if(!Array.isArray(list))throw 0;
+    const ok=list.filter(e=>e&&typeof e.id==="string"&&typeof e.a==="string"&&typeof e.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.d));
+    const have=new Set(entries.map(e=>e.id));let added=0;
+    ok.forEach(e=>{if(!have.has(e.id)){entries.push(e);added++;}});
+    saveLocal();render();renderBackup();
+    toast(added?`${added} entrée${added>1?"s":""} restaurée${added>1?"s":""}`:"Rien de nouveau dans ce fichier");
+  }catch(e){toast("Ce fichier n'est pas une sauvegarde Quête Forme");}
+};
+function renderBackup(){
+  let t=0;try{t=+localStorage.getItem("queteForme.lastBackup")||0;}catch(e){}
+  const d=t?Math.floor((Date.now()-t)/86400000):null;
+  $("bkInfo").textContent=entries.length+" entrées enregistrées sur cet appareil. "+(t?(d===0?"Dernière sauvegarde : aujourd'hui.":`Dernière sauvegarde : il y a ${d} jour${d>1?"s":""}.`):"Aucune sauvegarde pour l'instant.");
+  $("bkInfo").style.color=(!t&&entries.length>20)||(d!=null&&d>14)?"var(--warn)":"";
+}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+setSync();renderBackup();
+render();
+})();
+</script>
+</body>
+</html>
