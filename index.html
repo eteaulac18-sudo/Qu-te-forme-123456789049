@@ -141,6 +141,42 @@ svg text{font-family:var(--body);font-size:13px;fill:var(--muted)}
 .levelup{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:70}
 .levelup div{font-family:var(--display);font-size:22px;color:var(--gold);background:#000;border:4px solid var(--gold);padding:18px 22px;text-shadow:3px 3px 0 #6b4a00;animation:pop 1.6s forwards}
 @keyframes pop{0%{transform:scale(.4);opacity:0}15%{transform:scale(1.1);opacity:1}80%{opacity:1}100%{opacity:0}}
+/* Onglets & objectifs */
+header .views button{font-family:var(--display);font-size:10px;padding:8px 12px}
+.gwrap{position:relative}
+.gmarks{position:absolute;inset:0;pointer-events:none}
+.gmark{position:absolute;top:-6px;bottom:-6px;width:4px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px #000}
+.gmark span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:14px;line-height:1}
+.glegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:15px;color:var(--muted)}
+.glegend b{color:var(--ink)}
+.goal{display:grid;gap:12px}
+.goal.done{opacity:.75}
+.goal-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.goal-title{font-family:var(--display);font-size:13px;line-height:1.5;color:var(--gold);margin:0}
+.goal-sub{font-size:16px;color:var(--muted)}
+.ready{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ready .big{font-size:32px}
+.rgauge{position:relative;display:grid;grid-template-columns:repeat(20,1fr);gap:3px;padding:6px;background:#0d0a1c;border:3px solid #000}
+.rgauge i{display:block;height:22px;background:#2a2347}
+.rmark{position:absolute;top:-8px;bottom:-8px;width:3px;margin-left:-1.5px}
+.rmark.ok{background:var(--gold)}
+.rmark.exp{background:var(--ink)}
+.rlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.rlegend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.comps{display:grid;gap:8px}
+.comp{display:grid;gap:3px}
+.comp-top{display:flex;justify-content:space-between;font-size:15px}
+.comp-top b{font-family:var(--display);font-size:10px}
+.comp small{font-size:14px;color:var(--muted)}
+.advice{background:#120e24;border-left:4px solid var(--cyan);padding:8px 10px;font-size:16px}
+.goal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.status-seg button[aria-pressed="true"][data-st="pause"]{background:var(--muted);color:#120e24}
+.status-seg button[aria-pressed="true"][data-st="fini"]{background:var(--good);color:#06240f}
+.linkbtn{background:none;border:2px solid var(--line);padding:5px 10px;font-size:15px;color:var(--muted)}
+.linkbtn.danger{border-color:var(--bad);color:var(--bad)}
+.duo{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center}
+.duo span{color:var(--muted);font-size:16px}
+.fields input:disabled{opacity:.4}
 /* Formulaire sport */
 .overlay{position:fixed;inset:0;background:rgba(8,5,20,.78);display:grid;place-items:center;z-index:80;padding:16px}
 .overlay[hidden]{display:none}
@@ -171,8 +207,10 @@ svg text{font-family:var(--body);font-size:13px;fill:var(--muted)}
 <div class="wrap">
   <header>
     <h1>QUÊTE FORME</h1>
+    <nav class="seg views" role="group" aria-label="Onglets"><button id="vJeu" aria-pressed="true">JAUGE</button><button id="vObj" aria-pressed="false">OBJECTIFS</button></nav>
     <span class="chip" id="sync">Chargement…</span>
   </header>
+<div id="viewJeu" class="view">
 
   <div class="grid">
     <div class="col">
@@ -187,8 +225,9 @@ svg text{font-family:var(--body);font-size:13px;fill:var(--muted)}
             <div class="trend" id="trend"></div>
           </div>
         </div>
-        <div class="gauge" id="gauge" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+        <div class="gwrap"><div class="gauge" id="gauge" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div><div class="gmarks" id="gmarks"></div></div>
         <div class="scale"><span>0 À plat</span><span>50</span><span>100 Super forme</span></div>
+        <div class="glegend" id="glegend"></div>
         <div class="stats">
           <div class="stat"><span>Aujourd'hui</span><b id="sToday">0</b></div>
           <div class="stat"><span>Moy. 7 jours</span><b id="s7">–</b></div>
@@ -269,7 +308,31 @@ svg text{font-family:var(--body);font-size:13px;fill:var(--muted)}
     <p>Sources : <a href="https://www.mangerbouger.fr/Les-recommandations">Manger Bouger, recommandations PNNS (Santé publique France)</a> · <a href="https://www.who.int/fr/news-room/fact-sheets/detail/physical-activity">OMS, activité physique</a> · <a href="https://www.santepubliquefrance.fr/determinants-de-sante/alcool">Santé publique France, repères alcool</a> · <a href="https://pacompendium.com/sports/">Compendium des activités physiques 2024</a> · Sommeil : consensus AASM/SRS, au moins 7 h par nuit pour un adulte.</p>
   </section>
 </div>
-
+<div id="viewObj" class="view" hidden>
+  <section class="panel">
+    <h2>NOUVEL OBJECTIF SPORTIF</h2>
+    <div class="acts">
+      <button class="act good" data-newgoal="velo"><span class="ico" aria-hidden="true">🚴</span><span class="lbl">Objectif vélo</span><span class="cnt">Distance, durée, vitesse, date</span></button>
+      <button class="act good" data-newgoal="rando"><span class="ico" aria-hidden="true">🥾</span><span class="lbl">Objectif randonnée</span><span class="cnt">Distance, durée, vitesse, date</span></button>
+      <button class="act good" data-newgoal="course"><span class="ico" aria-hidden="true">🏃</span><span class="lbl">Objectif course à pied</span><span class="cnt">Distance, temps visé, date</span></button>
+    </div>
+  </section>
+  <div id="goalList" class="col"></div>
+  <section class="panel about" aria-label="Calcul de la préparation">
+    <h2>COMMENT LA PRÉPARATION EST CALCULÉE</h2>
+    <p>La jauge de préparation va de 0 à 100. Tu es considéré comme prêt à partir de 80. Elle est calculée uniquement à partir de ce que tu notes dans Bouger (6 dernières semaines) et de ta jauge Forme, qui reflète ton alimentation, ton sommeil et ton activité.</p>
+    <ul>
+      <li><b>Endurance</b> : ta plus longue sortie des 6 dernières semaines, comparée à la distance à tenir. Repère courant d'entraînement : environ 90 % de la distance jusqu'au semi-marathon, 75 % au-delà, et 80 % de l'étape du jour pour le vélo et la randonnée.</li>
+      <li><b>Volume</b> : tes kilomètres moyens par semaine sur 4 semaines, comparés à un volume conseillé (environ 1,6 × la distance en course, 1,5 × l'étape à vélo, 1,2 × l'étape en randonnée).</li>
+      <li><b>Allure</b> (course) : ton temps sur la distance visée est prédit à partir de tes meilleures sorties avec la formule de Riegel (T2 = T1 × (D2 ÷ D1)^1,06), utilisée depuis 1981 pour estimer un temps de course.</li>
+      <li><b>Vitesse</b> (vélo, randonnée) : ta meilleure vitesse moyenne sur une sortie d'au moins 40 % de l'étape. Si tu choisis « indifférent », ce critère est ignoré.</li>
+      <li><b>Hygiène de vie</b> : ta jauge Forme comparée au niveau requis (60, ou 70 pour un objectif long). C'est ce niveau qui apparaît comme repère sur ta jauge Forme.</li>
+      <li><b>Délai</b> : pour monter en volume sans te blesser, on conseille souvent de ne pas augmenter de plus de 10 % par semaine. L'appli calcule combien de semaines il te faut à ce rythme, plus une semaine plus légère avant le jour J.</li>
+    </ul>
+    <p>Ces calculs sont indicatifs. Ils ne remplacent pas un plan d'entraînement ni un avis médical, surtout pour un objectif long ou si tu reprends le sport.</p>
+  </section>
+</div>
+</div>
 <div class="overlay" id="sport" hidden></div>
 <script>
 (function(){
@@ -283,6 +346,7 @@ const CATS=[
   {id:"limiter",label:"À LIMITER",lim:true}
 ];
 const ACTIONS=[
+  {id:"pates",cat:"assiette",ico:"🍝",label:"Plat de pâtes",pasta:true,pts:1,why:"Les pâtes sont un féculent : complètes, elles comptent pour le repère PNNS d'au moins un féculent complet par jour. La note dépend surtout de la sauce (légumes et tomate en bonus, fromage et crème en malus) et de ce que tu ajoutes. Les options cochées sont ajoutées comme des actions à part, avec leurs plafonds habituels."},
   {id:"fl",cat:"assiette",ico:"🥦",label:"Portion de fruits ou légumes",pts:2,capDay:5,after:0.5,why:"PNNS : au moins 5 portions de fruits et légumes par jour (une portion ≈ 80 à 100 g, soit une pomme ou une assiette de crudités)."},
   {id:"complet",cat:"assiette",ico:"🍞",label:"Féculent complet (pain, riz, pâtes complètes)",pts:2,capDay:1,after:0.5,why:"PNNS : au moins un féculent complet par jour, pour les fibres et la satiété."},
   {id:"legum",cat:"assiette",ico:"🫘",label:"Légumineuses (lentilles, pois chiches, haricots)",pts:3,capWeek:2,after:1.5,why:"PNNS : des légumineuses au moins 2 fois par semaine."},
@@ -312,6 +376,9 @@ const ACTIONS=[
   {id:"modere",cat:"bouger",hidden:true,ico:"🚴",label:"30 min d'activité modérée",pts:5,min:30,capDay:2,after:2,why:""},
   {id:"intense",cat:"bouger",hidden:true,ico:"🏃",label:"30 min d'activité intense",pts:7,min:60,capDay:2,after:2,why:""},
   {id:"muscu",cat:"bouger",ico:"🏋️",label:"Séance de renforcement musculaire",pts:4,capWeek:3,after:2,why:"OMS : renforcement musculaire au moins 2 jours par semaine."},
+  {id:"rando",cat:"bouger",ico:"🥾",label:"Randonnée",sport:"hike",pts:1,
+    levels:[{id:"plat",label:"Plat, chemins",met:5.3},{id:"vallon",label:"Vallonné",met:6.0},{id:"montagne",label:"Montagne ou sac lourd",met:7.8}],
+    why:"Compendium des activités physiques 2024 : randonnée sur chemins ≈ 5,3 MET, en terrain vallonné ≈ 6 MET, en montagne ou avec un sac chargé ≈ 7,8 MET."},
   {id:"pause",cat:"bouger",ico:"🧍",label:"Pause active (se lever, s'étirer, escaliers)",pts:0.5,capDay:6,after:0,why:"PNNS : ne pas rester assis plus de 2 h d'affilée. Se lever et marcher quelques minutes suffit."},
 
   {id:"sommeil",cat:"recup",ico:"😴",label:"Nuit de 7 à 9 h",pts:4,capDay:1,after:0,why:"Sociétés savantes du sommeil (AASM/SRS) : au moins 7 h par nuit pour un adulte. Le manque de sommeil augmente l'appétit et la fatigue."},
@@ -370,6 +437,34 @@ function dishCalc(e,w,cw,vw){
   p+=overC*-2+overV*-3;
   return{p:Math.round(p*2)/2,charc,viande,overC,overV,first:w<1,d,s};
 }
+/* Plats de pâtes : sauce + options ajoutées comme actions séparées (grp = id du plat) */
+const SAUCES=[
+  {id:"tomate",label:"Sauce tomate",pts:0,fl:1,note:"La sauce tomate compte comme une portion de légumes."},
+  {id:"legumes",label:"Légumes (courgettes, poivrons, primavera…)",pts:0,fl:1,note:"Les légumes de la sauce comptent comme une portion."},
+  {id:"pesto_m",label:"Pesto maison",pts:0,note:"Basilic, huile d'olive et pignons : gras, mais de bonnes graisses."},
+  {id:"pesto_p",label:"Pesto en pot",pts:-1,note:"Souvent très salé, et fait avec de l'huile de tournesol plutôt que d'olive."},
+  {id:"bolo",label:"Bolognaise",pts:0,viande:1,note:"Compte pour une portion de viande rouge dans ta semaine."},
+  {id:"thon",label:"Thon ou sardines",pts:0,poisson:1,note:"Compte comme une portion de poisson."},
+  {id:"beurre",label:"Beurre ou huile, nature",pts:0,note:"Simple, sans bonus ni malus."},
+  {id:"fromage",label:"Fromage ou crème (4 fromages, alfredo…)",pts:-2,note:"Riche en graisses saturées et en sel."},
+  {id:"carbo",label:"Carbonara",pts:-2,charc:1,note:"Crème, lardons et fromage : compte pour une portion de charcuterie."}
+];
+const SBYID=Object.fromEntries(SAUCES.map(x=>[x.id,x]));
+const PASTA_OPTS=[
+  {id:"complet",label:"Pâtes complètes",a:"complet"},
+  {id:"legplus",label:"Légumes en plus (dans le plat ou à côté)",a:"fl"},
+  {id:"rape",label:"Fromage râpé ou parmesan",a:"laitier"},
+  {id:"maison",label:"Fait maison",a:"maison"}
+];
+function pastaCalc(e,cw,vw){
+  const sc=SBYID[e.sauce]||SBYID.beurre;
+  let p=sc.pts+(e.big?-1:0);
+  const charc=sc.charc||0,viande=sc.viande||0;
+  const overC=Math.max(0,cw+charc-3)-Math.max(0,cw-3),overV=Math.max(0,vw+viande-3)-Math.max(0,vw-3);
+  p+=overC*-2+overV*-3;
+  return{p,charc,viande,sc};
+}
+function simulate(list){const save=entries;entries=entries.concat(list);const P=compute().pts;entries=save;return list.map(x=>P[x.id]||0);}
 /* Sports mesurés : points = MET × minutes ÷ 35 ; jusqu'à +10 par jour à plein tarif, puis 30 % */
 const SPORT_DIV=35,SPORT_CAP=10,SPORT_AFTER=0.3;
 function interp(curve,x){
@@ -380,6 +475,7 @@ function interp(curve,x){
 function sportInfo(a,e){
   let met,min;
   if(a.sport==="dist"){const km=+e.km||0,v=+e.v||0;if(!(km>0&&v>0))return null;min=km/v*60;met=interp(a.curve,v);}
+  else if(a.sport==="hike"){min=+e.min||0;if(!(min>0&&(+e.km)>0))return null;const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];met=l.met;}
   else{min=+e.min||0;if(!(min>0))return null;const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];met=l.met;}
   const raw=met*min/SPORT_DIV;
   const omsMin=min*(met>=6?2:met>=3?1:0);
@@ -388,12 +484,15 @@ function sportInfo(a,e){
 function sportPts(raw,prevRaw){const full=clamp(SPORT_CAP-prevRaw,0,raw);return Math.round((full+(raw-full)*SPORT_AFTER)*10)/10;}
 function entryLabel(a,e){
   if(a.sport==="dist")return `${a.label} · ${String(e.km).replace(".",",")} km à ${String(e.v).replace(".",",")} km/h`;
+  if(a.pasta){const sc=SBYID[e.sauce]||SBYID.beurre;return `Pâtes · ${sc.label.split(" (")[0].toLowerCase()}${e.big?" · grosse assiette":""}`;}
+  if(a.sport==="hike"){const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];return `Randonnée · ${String(e.km).replace(".",",")} km en ${fmtDur(e.min)}, ${l.label.toLowerCase()}`;}
   if(a.dish){const d=DBYID[e.dish]||DBYID.autre,s=SIZES.find(x=>x.id===e.size)||SIZES[1];return `${d.label}${s.id==="normale"?"":" · portion "+s.label.toLowerCase().split(" ")[0]}`;}
   if(a.sport==="time"){const l=a.levels.find(x=>x.id===e.lvl)||a.levels[0];return `${a.label} · ${e.min} min, ${l.label.toLowerCase()}`;}
   return a.label;
 }
 function ruleText(a){
   const f=fmt;
+  if(a.pasta)return `Sauce : de −2 (fromage, crème, carbonara) à 0. Pesto en pot −1, grosse assiette −1. La tomate et les légumes ajoutent une portion de légumes (+2), le thon une portion de poisson (+3). Chaque option cochée est notée comme l'action correspondante.`;
   if(a.dish)return `Chaque plat de la liste a sa pénalité (de −2 à −6), réduite pour le premier plat riche de la semaine. Petite portion ×0,5, grosse ×1,5. Chaque portion de charcuterie au-delà de 3 dans la semaine coûte −2 de plus, chaque portion de viande rouge au-delà de 3 coûte −3 de plus.`;
   if(a.sport)return `Points = MET × minutes ÷ ${SPORT_DIV}. Jusqu'à +${SPORT_CAP} de sport par jour à plein tarif, puis 30 % (l'OMS note que les bénéfices augmentent moins au-delà de 300 min par semaine). Pour la quête de la semaine, une minute intense (6 MET ou plus) compte double.`;
   if(a.freeWeek!=null) return `${a.freeWeek===1?"Le premier":"Les "+a.freeWeek+" premiers"} de la semaine : ${f(a.freePts)}. Ensuite : ${f(a.pts)}.`;
@@ -431,6 +530,7 @@ function compute(){
     const n=dc[kd]||0,w=wc[kw]||0;
     let p,m=a.min||0;
     if(a.sport){const s=sportInfo(a,e);if(!s)continue;const prev=sraw[e.d]||0;p=sportPts(s.raw,prev);sraw[e.d]=prev+s.raw;m=s.omsMin;}
+    else if(a.pasta){const kc=wk+"|charcut",kv=wk+"|viande";const r=pastaCalc(e,wc[kc]||0,wc[kv]||0);p=r.p;wc[kc]=(wc[kc]||0)+r.charc;wc[kv]=(wc[kv]||0)+r.viande;}
     else if(a.dish){const kc=wk+"|charcut",kv=wk+"|viande";const r=dishCalc(e,w,wc[kc]||0,wc[kv]||0);p=r.p;wc[kc]=(wc[kc]||0)+r.charc;wc[kv]=(wc[kv]||0)+r.viande;}
     else p=pointsFor(a,n,w);
     dc[kd]=n+1;wc[kw]=w+1;pts[e.id]=p;
@@ -512,7 +612,7 @@ function render(){
   if(lastHp!=null&&Math.round(hp)!==Math.round(lastHp)){gauge.classList.remove("hit","up");void gauge.offsetWidth;gauge.classList.add(hp<lastHp?"hit":"up");}
   lastHp=hp;
 
-  renderTabs();renderActs(C);renderLog(C);renderQuests(C);renderCharts(C);
+  renderTabs();renderActs(C);renderLog(C);renderQuests(C);renderCharts(C);renderGoals(C,hp);
 }
 function renderTabs(){
   $("tabs").innerHTML=CATS.map(c=>`<button data-c="${c.id}" class="${c.lim?"lim":""}" aria-pressed="${ui.cat===c.id}">${c.label}</button>`).join("");
@@ -520,12 +620,12 @@ function renderTabs(){
 function renderActs(C){
   const D=selDay(),wk=weekOf(D);
   $("acts").innerHTML=ACTIONS.filter(a=>a.cat===ui.cat&&!a.hidden).map(a=>{
-    const n=C.dc[D+"|"+a.id]||0,w=C.wc[wk+"|"+a.id]||0,p=a.sport?1:a.dish?-1:pointsFor(a,n,w);
+    const n=C.dc[D+"|"+a.id]||0,w=C.wc[wk+"|"+a.id]||0,p=a.sport||a.pasta?1:a.dish?-1:pointsFor(a,n,w);
     const cls=p>0?"pos":p<0?"neg":"zero";
     const kind=a.pts>0?"good":"bad";
     const cnt=n?`×${n} ${ui.day==="today"?"aujourd'hui":"hier"}`:(w?`×${w} cette semaine`:"");
-    const ptxt=a.sport?(a.sport==="dist"?"+ selon km et vitesse":"+ selon durée et niveau"):a.dish?"− selon le plat":fmt(p);
-    return `<button class="act ${kind}" data-a="${a.id}" aria-label="${a.label}, ${a.sport?"points selon l'effort":a.dish?"points selon le plat":fmt(p)+" points"}">
+    const ptxt=a.sport?(a.sport==="dist"?"+ selon km et vitesse":a.sport==="hike"?"+ selon km, durée et terrain":"+ selon durée et niveau"):a.dish?"− selon le plat":a.pasta?"± selon la sauce":fmt(p);
+    return `<button class="act ${kind}" data-a="${a.id}" aria-label="${a.label}, ${a.sport?"points selon l'effort":a.dish?"points selon le plat":a.pasta?"points selon la sauce":fmt(p)+" points"}">
       <span class="ico" aria-hidden="true">${a.ico}</span>
       <span class="lbl">${a.label}</span>
       <span class="pts ${cls}">${ptxt}</span>
@@ -544,7 +644,7 @@ function renderLog(C){
   if(!d){$("log").innerHTML=`<li style="background:none;padding:0"><p class="empty">Rien de noté pour l'instant. Commence par ce que tu as déjà fait : un verre d'eau, une marche, ta nuit de sommeil…</p></li>`;return;}
   $("log").innerHTML=d.list.slice().reverse().map(({e,p})=>{const a=BYID[e.a];const h=new Date(e.ts);
     const hh=ui.day==="today"?String(h.getHours()).padStart(2,"0")+":"+String(h.getMinutes()).padStart(2,"0"):"";
-    return `<li><span class="p" style="color:${p>0?"var(--good)":p<0?"var(--bad)":"var(--muted)"}">${fmt(p)}</span><span class="t">${a.ico} ${entryLabel(a,e)}</span><span class="h">${hh}</span><button data-del="${e.id}" aria-label="Supprimer ${a.label}">✕</button></li>`;}).join("");
+    return `<li><span class="p" style="color:${p>0?"var(--good)":p<0?"var(--bad)":"var(--muted)"}">${fmt(p)}</span><span class="t">${e.grp?"↳ ":""}${a.ico} ${entryLabel(a,e)}</span><span class="h">${hh}</span><button data-del="${e.id}" aria-label="Supprimer ${a.label}">✕</button></li>`;}).join("");
 }
 function renderQuests(C){
   const T=today(),q=questsFor(C.days,weekOf(T));
@@ -629,16 +729,60 @@ function addEntry(aid,el,extra){
   const D=selDay(),a=BYID[aid];
   if(a.sport&&!extra){openSport(aid,el);return;}
   if(a.dish&&!extra){openDish(el);return;}
-  const salad=extra&&extra.salad;if(extra)delete extra.salad;
+  if(a.pasta&&!extra){openPasta(el);return;}
+  extra=Object.assign({},extra||{});
+  const salad=extra.salad;delete extra.salad;
+  const kids=extra.kids||[];delete extra.kids;
   const now=Date.now();
-  const e=Object.assign({id:rid(),a:aid,ts:now,d:D},extra||{});
+  const e=Object.assign({id:rid(),a:aid,ts:now,d:D},extra);
   entries.push(e);
-  let s2=null;if(salad){s2={id:rid(),a:"fl",ts:now+1,d:D};entries.push(s2);}
+  const ch=(salad?["fl"]:[]).concat(kids).map((k,i)=>({id:rid(),a:k,ts:now+1+i,d:D,grp:e.id}));
+  ch.forEach(x=>entries.push(x));
   saveLocal();markDirty(D);
-  const P=compute().pts;let p=P[e.id]||0;if(s2)p+=P[s2.id]||0;
+  const P=compute().pts;let p=P[e.id]||0;ch.forEach(x=>p+=P[x.id]||0);
   render();
   if(el)floatAt(el,p);
-  toast(`${fmt(p)} · ${entryLabel(a,e)}${s2?" + salade verte":""}`,s2?null:e.id);
+  toast(`${fmt(p)} · ${entryLabel(a,e)}${ch.length?` + ${ch.length} ajout${ch.length>1?"s":""}`:""}`,e.id);
+}
+
+/* ---------- Formulaire pâtes ---------- */
+function openPasta(el){
+  const a=BYID.pates;let last={};try{last=JSON.parse(localStorage.getItem("queteForme.last.pasta")||"{}");}catch(e){}
+  const st={sauce:last.sauce||"tomate",opts:new Set(last.opts||["maison"]),big:false};
+  const box=$("sport");sp={a,el};
+  box.innerHTML=`<form class="sheet" id="pForm" aria-labelledby="pTitle">
+    <h2 id="pTitle">🍝 PLAT DE PÂTES</h2>
+    <div class="fields">
+      <label for="pSauce">Quelle sauce ?</label>
+      <select id="pSauce">${SAUCES.map(x=>`<option value="${x.id}"${x.id===st.sauce?" selected":""}>${x.label}</option>`).join("")}</select>
+      ${PASTA_OPTS.map(o=>`<label class="check" for="pO_${o.id}"><input id="pO_${o.id}" type="checkbox" data-opt="${o.id}"${st.opts.has(o.id)?" checked":""}> ${o.label}</label>`).join("")}
+      <label class="check" for="pBig"><input id="pBig" type="checkbox"> Grosse assiette ou resservi</label>
+    </div>
+    <div class="preview" id="pPrev"></div>
+    <p class="note" id="pNote"></p>
+    <div class="row"><button type="button" class="btn ghost" id="pCancel">Annuler</button><button type="submit" class="btn">Valider</button></div>
+  </form>`;
+  box.hidden=false;
+  const kidsOf=()=>{const sc=SBYID[st.sauce];const k=[];if(sc.fl)k.push("fl");if(sc.poisson)k.push("poisson");PASTA_OPTS.forEach(o=>{if(st.opts.has(o.id))k.push(o.a);});return k;};
+  const upd=()=>{
+    st.sauce=$("pSauce").value;st.big=$("pBig").checked;
+    st.opts=new Set([...box.querySelectorAll("[data-opt]")].filter(i=>i.checked).map(i=>i.dataset.opt));
+    const D=selDay(),now=Date.now(),main={id:"_m",a:"pates",ts:now,d:D,sauce:st.sauce,big:st.big};
+    const kids=kidsOf().map((k,i)=>({id:"_k"+i,a:k,ts:now+1+i,d:D}));
+    const pts=simulate([main].concat(kids));const tot=pts.reduce((x,y)=>x+y,0);
+    const bonus=pts.slice(1).reduce((x,y)=>x+y,0);
+    $("pPrev").innerHTML=`<div><span>Sauce</span><b style="color:${pts[0]<0?"var(--bad)":"var(--ink)"}">${fmt(pts[0])}</b></div>
+      <div><span>Ajouts</span><b style="color:var(--good)">${kids.length?fmt(bonus):"–"}</b></div>
+      <div style="grid-column:1/-1"><span>Total</span><b style="color:${tot<0?"var(--bad)":"var(--good)"}">${fmt(tot)}</b></div>`;
+    const sc=SBYID[st.sauce];
+    $("pNote").textContent=sc.note+(st.opts.has("complet")?"":" Astuce : en pâtes complètes, tu gagnes +2 (féculent complet).");
+  };
+  box.querySelectorAll("input,select").forEach(i=>i.addEventListener("change",upd));
+  $("pCancel").onclick=closeSport;box.onclick=ev=>{if(ev.target===box)closeSport();};
+  $("pForm").addEventListener("submit",ev=>{ev.preventDefault();upd();
+    try{localStorage.setItem("queteForme.last.pasta",JSON.stringify({sauce:st.sauce,opts:[...st.opts]}));}catch(e){}
+    const el2=sp.el,k=kidsOf();closeSport();addEntry("pates",el2,{sauce:st.sauce,big:st.big||undefined,kids:k});});
+  upd();$("pSauce").focus();
 }
 
 /* ---------- Formulaire plat riche ---------- */
@@ -686,11 +830,15 @@ let sp=null;
 function lastSport(id){try{return JSON.parse(localStorage.getItem("queteForme.last."+id)||"null");}catch(e){return null;}}
 function openSport(aid,el){
   const a=BYID[aid],last=lastSport(aid)||{};
-  sp={a,el,km:last.km??(aid==="course"?5:15),v:last.v??(aid==="course"?10:18),min:last.min??60,lvl:last.lvl??a.levels?.[0].id};
+  sp={a,el,km:last.km??(aid==="course"?5:aid==="rando"?12:15),v:last.v??(aid==="course"?10:18),min:last.min??(aid==="rando"?180:60),lvl:last.lvl??a.levels?.[0].id};
   const box=$("sport");
   const fields=a.sport==="dist"?`
       <label for="spKm">Distance (km)</label><input id="spKm" type="number" inputmode="decimal" min="0.1" max="300" step="0.1" value="${sp.km}">
       <label for="spV">Vitesse moyenne (km/h)</label><input id="spV" type="number" inputmode="decimal" min="${a.vmin}" max="${a.vmax}" step="0.1" value="${sp.v}">`
+    :a.sport==="hike"?`
+      <label for="spKm">Distance (km)</label><input id="spKm" type="number" inputmode="decimal" min="0.5" max="100" step="0.1" value="${sp.km}">
+      <span class="flabel">Durée</span><div class="duo"><input id="spH" type="number" inputmode="numeric" min="0" max="24" step="1" value="${Math.floor(sp.min/60)}" aria-label="Heures"><span>h</span><input id="spM" type="number" inputmode="numeric" min="0" max="59" step="5" value="${Math.round(sp.min%60)}" aria-label="Minutes"><span>min</span></div>
+      <span class="flabel">Terrain</span><div class="seg" id="spLvl" role="group" aria-label="Terrain">${a.levels.map(l=>`<button type="button" data-lvl="${l.id}" aria-pressed="${l.id===sp.lvl}">${l.label} · ${String(l.met).replace(".",",")} MET</button>`).join("")}</div>`
     :`<label for="spMin">Durée (minutes)</label><input id="spMin" type="number" inputmode="numeric" min="5" max="300" step="5" value="${sp.min}">
       <span class="flabel">Intensité</span><div class="seg" id="spLvl" role="group" aria-label="Intensité">${a.levels.map(l=>`<button type="button" data-lvl="${l.id}" aria-pressed="${l.id===sp.lvl}">${l.label} · ${String(l.met).replace(".",",")} MET</button>`).join("")}</div>`;
   box.innerHTML=`<form class="sheet" id="spForm" aria-labelledby="spTitle">
@@ -703,11 +851,12 @@ function openSport(aid,el){
   box.hidden=false;
   const upd=()=>{
     if(a.sport==="dist"){sp.km=parseFloat(String($("spKm").value).replace(",","."));sp.v=parseFloat(String($("spV").value).replace(",","."));}
+    else if(a.sport==="hike"){sp.km=parseFloat(String($("spKm").value).replace(",","."));sp.min=(parseInt($("spH").value,10)||0)*60+(parseInt($("spM").value,10)||0);}
     else sp.min=parseInt($("spMin").value,10);
-    const e=a.sport==="dist"?{km:sp.km,v:sp.v}:{min:sp.min,lvl:sp.lvl};
-    const valid=a.sport==="dist"?(sp.km>0&&sp.km<=300&&sp.v>=a.vmin&&sp.v<=a.vmax):(sp.min>=1&&sp.min<=300);
+    const e=a.sport==="dist"?{km:sp.km,v:sp.v}:a.sport==="hike"?{km:sp.km,min:sp.min,lvl:sp.lvl}:{min:sp.min,lvl:sp.lvl};
+    const valid=a.sport==="dist"?(sp.km>0&&sp.km<=300&&sp.v>=a.vmin&&sp.v<=a.vmax):a.sport==="hike"?(sp.km>0&&sp.km<=100&&sp.min>=10&&sp.min<=1440&&sp.km/(sp.min/60)<=8):(sp.min>=1&&sp.min<=300);
     const prev=$("spPrev");$("spOk").disabled=!valid;
-    if(!valid){prev.innerHTML=a.sport==="dist"?`Entre une distance et une vitesse entre ${a.vmin} et ${a.vmax} km/h.`:"Entre une durée entre 1 et 300 minutes.";return;}
+    if(!valid){prev.innerHTML=a.sport==="dist"?`Entre une distance et une vitesse entre ${a.vmin} et ${a.vmax} km/h.`:a.sport==="hike"?"Entre une distance et une durée d'au moins 10 min (vitesse moyenne de 8 km/h maximum).":"Entre une durée entre 1 et 300 minutes.";return;}
     const s=sportInfo(a,e),C=compute(),p=sportPts(s.raw,C.sraw[selDay()]||0);
     const h=Math.floor(s.min/60),mn=Math.round(s.min%60);
     prev.innerHTML=`<div><span>Durée</span><b>${h?h+" h "+String(mn).padStart(2,"0"):mn+" min"}</b></div>
@@ -720,7 +869,7 @@ function openSport(aid,el){
   $("spCancel").onclick=closeSport;
   box.onclick=ev=>{if(ev.target===box)closeSport();};
   $("spForm").addEventListener("submit",ev=>{ev.preventDefault();upd();if($("spOk").disabled)return;
-    const extra=a.sport==="dist"?{km:Math.round(sp.km*10)/10,v:Math.round(sp.v*10)/10}:{min:sp.min,lvl:sp.lvl};
+    const extra=a.sport==="dist"?{km:Math.round(sp.km*10)/10,v:Math.round(sp.v*10)/10}:a.sport==="hike"?{km:Math.round(sp.km*10)/10,min:sp.min,lvl:sp.lvl}:{min:sp.min,lvl:sp.lvl};
     try{localStorage.setItem("queteForme.last."+a.id,JSON.stringify(extra));}catch(e){}
     const el2=sp.el;closeSport();addEntry(a.id,el2,extra);});
   upd();
@@ -730,7 +879,7 @@ function closeSport(){const box=$("sport");box.hidden=true;box.innerHTML="";sp=n
 document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&sp)closeSport();});
 function removeEntry(id){
   const e=entries.find(x=>x.id===id);if(!e)return;
-  entries=entries.filter(x=>x.id!==id);saveLocal();markDirty(e.d);render();
+  entries=entries.filter(x=>x.id!==id&&x.grp!==id);saveLocal();markDirty(e.d);render();
 }
 
 document.addEventListener("click",ev=>{
@@ -745,12 +894,214 @@ document.addEventListener("keydown",ev=>{const why=ev.target.closest&&ev.target.
 $("dToday").onclick=()=>{ui.day="today";$("dToday").setAttribute("aria-pressed","true");$("dYest").setAttribute("aria-pressed","false");render();};
 $("dYest").onclick=()=>{ui.day="yest";$("dYest").setAttribute("aria-pressed","true");$("dToday").setAttribute("aria-pressed","false");render();};
 
+/* ---------- Objectifs sportifs ---------- */
+const GKEY="queteForme.goals";
+let goals=[];try{const g=JSON.parse(localStorage.getItem(GKEY)||"[]");if(Array.isArray(g))goals=g;}catch(e){}
+function saveGoals(){try{localStorage.setItem(GKEY,JSON.stringify(goals));}catch(e){}}
+const GT={velo:{ico:"🚴",label:"Vélo",act:"velo"},rando:{ico:"🥾",label:"Randonnée",act:"rando"},course:{ico:"🏃",label:"Course à pied",act:"course"}};
+const MO2=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+function fmtDate(k){const t=pk(k);return t.getDate()+" "+MO2[t.getMonth()]+" "+t.getFullYear();}
+function fmtDur(min){min=Math.round(min);const h=Math.floor(min/60),m=min%60;return h?(h+" h "+String(m).padStart(2,"0")):(m+" min");}
+function fmtKm(x){return (Math.round(x*10)/10).toString().replace(".",",");}
+function daysBetween(a,b){return Math.round((pk(b)-pk(a))/86400000);}
+function sessions(type,fromK,toK){
+  const out=[];
+  for(const e of entries){if(e.a!==type||e.d<fromK||e.d>toK)continue;
+    const km=+e.km||0;let min=0;
+    if(type==="rando")min=+e.min||0;else{const v=+e.v||0;if(v>0)min=km/v*60;}
+    if(km>0&&min>0)out.push({d:e.d,km,min,v:km/(min/60)});}
+  return out;
+}
+function goalSpec(g){
+  if(g.type==="course"){const D=g.km;return{D,daily:D,days:1,targetT:g.tmin,speed:D/(g.tmin/60),
+    L:D<=21.1?0.9*D:0.75*D,W:clamp(1.6*D,12,65),long:D>=21.1};}
+  const days=g.tu==="j"?Math.max(1,g.tv):1,daily=g.km/days;
+  const speed=g.speed?g.speed:(g.tu==="h"&&g.tv>0?g.km/g.tv:null);
+  return{D:g.km,daily,days,speed,L:0.8*daily,W:g.type==="velo"?Math.max(1.5*daily,30):Math.max(1.2*daily,10),long:g.type==="velo"?daily>=100:daily>=25};
+}
+function goalReady(g,C,forme){
+  const T=today(),from=addDays(T,-41),S=sessions(GT[g.type].act,from,T),sp=goalSpec(g);
+  const comps=[];
+  const longest=S.reduce((m,x)=>Math.max(m,x.km),0);
+  const longS=S.find(x=>x.km===longest);
+  // endurance
+  let endS=clamp(longest/sp.L,0,1),endTxt=longest?`Plus longue sortie : ${fmtKm(longest)} km (le ${fmtDate(longS.d)}). Repère : ${fmtKm(sp.L)} km.`:`Aucune sortie notée ces 6 dernières semaines. Repère : ${fmtKm(sp.L)} km.`;
+  if(sp.days>1){
+    const byDay={};S.forEach(x=>byDay[x.d]=(byDay[x.d]||0)+x.km);
+    let best2=0;for(const k in byDay){best2=Math.max(best2,byDay[k]+(byDay[addDays(k,1)]||0));}
+    const need2=2*sp.daily*0.75;const s2=clamp(best2/need2,0,1);
+    endS=(endS+s2)/2;endTxt+=` Sur 2 jours d'affilée : ${fmtKm(best2)} km pour ${fmtKm(need2)} km conseillés.`;
+  }
+  comps.push({id:"end",label:"Endurance",w:g.type==="course"?0.25:0.35,s:endS,txt:endTxt,
+    tip:`Allonge ta sortie la plus longue d'environ 10 % par semaine, jusqu'à ${fmtKm(sp.L)} km.`});
+  // volume
+  const vol=sessions(GT[g.type].act,addDays(T,-27),T).reduce((a,x)=>a+x.km,0)/4;
+  comps.push({id:"vol",label:"Volume",w:g.type==="course"?0.25:0.30,s:clamp(vol/sp.W,0,1),
+    txt:`${fmtKm(vol)} km par semaine en moyenne (4 semaines). Repère : ${fmtKm(sp.W)} km.`,
+    tip:`Ajoute des sorties pour approcher ${fmtKm(sp.W)} km par semaine, sans dépasser +10 % d'une semaine à l'autre.`});
+  // allure / vitesse
+  if(g.type==="course"){
+    let pred=null,src=null;
+    S.filter(x=>x.km>=3).forEach(x=>{const t=x.min*Math.pow(sp.D/x.km,1.06);if(pred==null||t<pred){pred=t;src=x;}});
+    const r=pred?sp.targetT/pred:0;
+    const pace=sp.targetT/sp.D;
+    comps.push({id:"perf",label:"Allure",w:0.35,s:pred?clamp((r-0.7)/0.3,0,1):0,
+      txt:pred?`Temps prédit sur ${fmtKm(sp.D)} km : ${fmtDur(pred)} (d'après ta sortie de ${fmtKm(src.km)} km à ${fmtKm(src.v)} km/h). Objectif : ${fmtDur(sp.targetT)}.`:`Note une course d'au moins 3 km pour estimer ton temps.`,
+      tip:`Allure visée : ${Math.floor(pace)}:${String(Math.round((pace%1)*60)).padStart(2,"0")} min/km, soit ${fmtKm(sp.speed)} km/h. Une séance par semaine un peu plus rapide aide à l'atteindre.`});
+  } else if(sp.speed){
+    const ok=S.filter(x=>x.km>=0.4*sp.daily);const best=ok.reduce((m,x)=>Math.max(m,x.v),0);
+    comps.push({id:"spd",label:"Vitesse",w:0.20,s:best?clamp((best/sp.speed-0.7)/0.3,0,1):0,
+      txt:best?`Meilleure vitesse sur une sortie d'au moins ${fmtKm(0.4*sp.daily)} km : ${fmtKm(best)} km/h. Objectif : ${fmtKm(sp.speed)} km/h.`:`Aucune sortie d'au moins ${fmtKm(0.4*sp.daily)} km pour mesurer ta vitesse. Objectif : ${fmtKm(sp.speed)} km/h.`,
+      tip:`Sur tes sorties d'au moins ${fmtKm(0.4*sp.daily)} km, essaie de tenir ${fmtKm(sp.speed)} km/h de moyenne.`});
+  }
+  // hygiène de vie
+  const need=sp.long?70:60;
+  comps.push({id:"forme",label:"Hygiène de vie",w:0.15,s:clamp(forme/need,0,1),
+    txt:`Jauge Forme : ${Math.round(forme)}. Niveau conseillé pour cet objectif : ${need}.`,
+    tip:`Remonte ta jauge Forme vers ${need} : sommeil de 7 h ou plus, fruits et légumes, moins d'ultra-transformés.`});
+  const wsum=comps.reduce((a,c)=>a+c.w,0);
+  const score=comps.reduce((a,c)=>a+c.w*c.s,0)/wsum*100;
+  // délai (règle des 10 %)
+  const left=daysBetween(T,g.date);
+  let weeks=0;if(vol<sp.W){const start=Math.max(vol,0.3*sp.W);weeks=Math.ceil(Math.log(sp.W/start)/Math.log(1.1));}
+  return{score,comps,sp,need,left,weeks,vol};
+}
+function expectedAt(g){
+  const T=today(),c=dk(new Date(g.created)),end=addDays(g.date,-7);
+  const span=daysBetween(c,end);const done=daysBetween(c,T);
+  const f=span<=0?1:clamp(done/span,0,1);
+  return (g.r0||0)+(80-(g.r0||0))*f;
+}
+function goalTitle(g){
+  const t=GT[g.type];
+  if(g.type==="course")return `${t.ico} ${fmtKm(g.km)} km en ${fmtDur(g.tmin)}`;
+  const dur=g.tu==="j"?`${g.tv} jour${g.tv>1?"s":""}`:`${fmtKm(g.tv)} h`;
+  return `${t.ico} ${t.label} · ${fmtKm(g.km)} km en ${dur}${g.speed?` à ${fmtKm(g.speed)} km/h`:""}`;
+}
+const STATUS=[{id:"pause",label:"En attente"},{id:"cours",label:"En cours"},{id:"fini",label:"Terminé"}];
+let goalConfirm=null;
+function renderGoals(C,forme){
+  // repères sur la jauge Forme
+  const act=goals.filter(g=>g.status==="cours");
+  const marks=[],leg=[];
+  act.forEach(g=>{const r=goalReady(g,C,forme);marks.push({v:r.need,ico:GT[g.type].ico});
+    leg.push(`${GT[g.type].ico} ${goalTitle(g).replace(/^\S+\s/,"")} : Forme <b>${r.need}</b> conseillée${forme>=r.need?" ✓":""}`);});
+  $("gmarks").innerHTML=marks.map((m,i)=>`<div class="gmark" style="left:${m.v}%"><span style="top:${-22-(i%2)*16}px">${m.ico}</span></div>`).join("");
+  $("glegend").innerHTML=leg.map(x=>`<span>${x}</span>`).join("");
+  // liste
+  const order={cours:0,pause:1,fini:2};
+  const list=goals.slice().sort((a,b)=>order[a.status]-order[b.status]||(a.date<b.date?-1:1));
+  if(!list.length){$("goalList").innerHTML=`<section class="panel"><p class="empty">Aucun objectif pour l'instant. Choisis vélo, randonnée ou course à pied pour en créer un.</p></section>`;return;}
+  $("goalList").innerHTML=list.map(g=>{
+    const r=goalReady(g,C,forme),sc=Math.round(r.score),exp=g.status==="fini"?null:Math.round(expectedAt(g));
+    const on=Math.round(r.score/5);
+    const col=sc>=80?"var(--good)":sc>=50?"var(--gold)":"var(--warn)";
+    const segs=Array.from({length:20},(_,i)=>`<i style="${i<on?"background:"+col:""}"></i>`).join("");
+    const left=r.left;
+    let delay;
+    if(left<0)delay=`Date passée depuis ${-left} jour${-left>1?"s":""}.`;
+    else{const wl=Math.floor(left/7);
+      delay=r.weeks===0?`Ton volume est déjà suffisant. Il reste ${wl} semaine${wl>1?"s":""}.`
+        :(r.weeks+1<=wl?`À +10 % par semaine, il te faut environ ${r.weeks} semaine${r.weeks>1?"s":""} pour atteindre le volume conseillé. Il en reste ${wl} : tu es dans les temps.`
+        :`À +10 % par semaine, il te faudrait environ ${r.weeks} semaines pour atteindre le volume conseillé, mais il n'en reste que ${wl}. Le délai est serré : vise plutôt de finir l'épreuve, ou décale la date.`);}
+    const weakest=r.comps.slice().sort((a,b)=>a.s-b.s)[0];
+    const state=sc>=80?"PRÊT":exp!=null&&sc>=exp-5?"DANS LES TEMPS":"EN RETARD";
+    const stCol=sc>=80?"var(--good)":state==="DANS LES TEMPS"?"var(--cyan)":"var(--warn)";
+    const confirm=goalConfirm===g.id;
+    return `<section class="panel goal ${g.status==="fini"?"done":""}" aria-label="${goalTitle(g)}">
+      <div class="goal-top">
+        <div><p class="goal-title">${goalTitle(g)}</p><div class="goal-sub">Le ${fmtDate(g.date)} · ${left>=0?"J−"+left:"passé"}</div></div>
+        <div class="seg status-seg" role="group" aria-label="Statut">${STATUS.map(s=>`<button type="button" data-gst="${g.id}" data-st="${s.id}" aria-pressed="${g.status===s.id}">${s.label}</button>`).join("")}</div>
+      </div>
+      ${g.status==="fini"?"":`<div class="ready"><span class="big" style="color:${col}">${sc}<small>/100</small></span><span class="status" style="color:${stCol}">${state}</span></div>
+      <div class="rgauge" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${sc}" aria-label="Préparation">${segs}
+        <div class="rmark ok" style="left:80%"></div>${exp!=null?`<div class="rmark exp" style="left:${clamp(exp,0,100)}%"></div>`:""}</div>
+      <div class="rlegend"><span><i style="background:var(--gold)"></i>Prêt : 80</span>${exp!=null?`<span><i style="background:var(--ink)"></i>Repère du jour : ${exp}</span>`:""}</div>
+      <div class="comps">${r.comps.map(c=>`<div class="comp"><div class="comp-top"><span>${c.label}</span><b>${Math.round(c.s*100)}</b></div><div class="qbar"><div style="width:${c.s*100}%"></div></div><small>${c.txt}</small></div>`).join("")}</div>
+      <div class="advice"><b>Priorité : ${weakest.label.toLowerCase()}.</b> ${weakest.tip}</div>
+      <p class="legend" style="margin:0">${delay}</p>`}
+      <div class="goal-actions"><span class="legend" style="margin:0">Créé le ${fmtDate(dk(new Date(g.created)))}</span>
+        ${confirm?`<span><button type="button" class="linkbtn" data-gcancel="1">Garder</button> <button type="button" class="linkbtn danger" data-gdel="${g.id}">Confirmer la suppression</button></span>`:`<button type="button" class="linkbtn" data-gask="${g.id}">Supprimer</button>`}</div>
+    </section>`;}).join("");
+}
+function openGoal(type){
+  const t=GT[type],box=$("sport");sp={a:{id:"goal"},el:null};
+  const defDate=addDays(today(),90);
+  const isRun=type==="course";
+  box.innerHTML=`<form class="sheet" id="gForm" aria-labelledby="gTitle">
+    <h2 id="gTitle">${t.ico} OBJECTIF ${t.label.toUpperCase()}</h2>
+    <div class="fields">
+      <label for="gKm">Distance (km)</label><input id="gKm" type="number" inputmode="decimal" min="1" max="${type==="velo"?2000:type==="rando"?500:250}" step="0.1" value="${isRun?10:type==="velo"?80:20}">
+      ${isRun?`<span class="flabel">Temps visé</span><div class="duo"><input id="gH" type="number" inputmode="numeric" min="0" max="48" value="0" aria-label="Heures"><span>h</span><input id="gM" type="number" inputmode="numeric" min="0" max="59" value="55" aria-label="Minutes"><span>min</span></div>`
+      :`<label for="gTv">En combien de temps</label><div class="duo" style="grid-template-columns:1fr auto"><input id="gTv" type="number" inputmode="decimal" min="0.5" max="60" step="0.5" value="${type==="velo"?4:1}"><div class="seg" id="gTu" role="group" aria-label="Unité"><button type="button" data-tu="h" aria-pressed="${type==="velo"}">Heures</button><button type="button" data-tu="j" aria-pressed="${type!=="velo"}">Jours</button></div></div>
+      <label for="gSp">Vitesse moyenne visée (km/h)</label><input id="gSp" type="number" inputmode="decimal" min="1" max="60" step="0.5" value="${type==="velo"?20:4}" disabled>
+      <label class="check" for="gAny"><input id="gAny" type="checkbox" checked> Indifférent</label>`}
+      <label for="gDate">Date de l'objectif</label><input id="gDate" type="date" min="${addDays(today(),1)}" value="${defDate}">
+    </div>
+    <p class="note" id="gNote"></p>
+    <div class="row"><button type="button" class="btn ghost" id="gCancel">Annuler</button><button type="submit" class="btn" id="gOk">Créer l'objectif</button></div>
+  </form>`;
+  box.hidden=false;
+  let tu=type==="velo"?"h":"j";
+  const read=()=>{
+    const km=parseFloat(String($("gKm").value).replace(",","."));const date=$("gDate").value;
+    const g={type,km,date};
+    if(isRun){g.tmin=(parseInt($("gH").value,10)||0)*60+(parseInt($("gM").value,10)||0);}
+    else{g.tv=parseFloat(String($("gTv").value).replace(",","."));g.tu=tu;g.speed=$("gAny").checked?null:parseFloat(String($("gSp").value).replace(",","."));}
+    return g;
+  };
+  const upd=()=>{
+    const g=read();let err="";
+    if(!(g.km>0))err="Entre une distance.";
+    else if(!/^\d{4}-\d{2}-\d{2}$/.test(g.date)||g.date<=today())err="Choisis une date à venir.";
+    else if(isRun&&!(g.tmin>0))err="Entre le temps visé.";
+    else if(!isRun&&!(g.tv>0))err="Entre la durée.";
+    else if(!isRun&&$("gAny").checked===false&&!(g.speed>0))err="Entre une vitesse, ou coche « Indifférent ».";
+    $("gOk").disabled=!!err;
+    if(err){$("gNote").textContent=err;return;}
+    const sp2=goalSpec(g);
+    let n="";
+    if(isRun)n=`Allure visée : ${fmtKm(sp2.speed)} km/h. `;
+    else{if(sp2.days>1)n+=`Soit ${fmtKm(sp2.daily)} km par jour. `;
+      if(g.tu==="h"&&g.speed&&Math.abs(g.km/g.tv-g.speed)>0.5)n+=`À ${fmtKm(g.speed)} km/h, ${fmtKm(g.km)} km prennent ${fmtDur(g.km/g.speed*60)} : c'est la vitesse qui sera utilisée. `;
+      else if(sp2.speed&&!g.speed)n+=`Vitesse moyenne nécessaire : ${fmtKm(sp2.speed)} km/h. `;}
+    n+=`Sortie longue repère : ${fmtKm(sp2.L)} km. Volume repère : ${fmtKm(sp2.W)} km par semaine.`;
+    $("gNote").textContent=n;
+  };
+  box.querySelectorAll("input").forEach(i=>i.addEventListener("input",upd));
+  const any=$("gAny");if(any)any.addEventListener("change",()=>{$("gSp").disabled=any.checked;upd();});
+  const tus=$("gTu");if(tus)tus.addEventListener("click",ev=>{const b=ev.target.closest("[data-tu]");if(!b)return;tu=b.dataset.tu;tus.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.tu===tu));upd();});
+  $("gCancel").onclick=closeSport;box.onclick=ev=>{if(ev.target===box)closeSport();};
+  $("gForm").addEventListener("submit",ev=>{ev.preventDefault();upd();if($("gOk").disabled)return;
+    const g=Object.assign(read(),{id:rid(),status:"cours",created:Date.now()});
+    const C=compute();g.r0=Math.round(goalReady(g,C,formeAt(C.days,today())).score);
+    goals.push(g);saveGoals();closeSport();render();toast("Objectif créé");});
+  upd();$("gKm").focus();
+}
+document.addEventListener("click",ev=>{
+  const ng=ev.target.closest("[data-newgoal]");if(ng){openGoal(ng.dataset.newgoal);return;}
+  const st=ev.target.closest("[data-gst]");if(st){const g=goals.find(x=>x.id===st.dataset.gst);if(g){g.status=st.dataset.st;saveGoals();render();}return;}
+  const ask=ev.target.closest("[data-gask]");if(ask){goalConfirm=ask.dataset.gask;render();return;}
+  if(ev.target.closest("[data-gcancel]")){goalConfirm=null;render();return;}
+  const del=ev.target.closest("[data-gdel]");if(del){goals=goals.filter(x=>x.id!==del.dataset.gdel);goalConfirm=null;saveGoals();render();toast("Objectif supprimé");return;}
+});
+function showView(v){
+  const obj=v==="objectifs";
+  $("viewJeu").hidden=obj;$("viewObj").hidden=!obj;
+  $("vJeu").setAttribute("aria-pressed",String(!obj));$("vObj").setAttribute("aria-pressed",String(obj));
+  try{history.replaceState(null,"",obj?"#objectifs":location.pathname);}catch(e){}
+  window.scrollTo(0,0);
+}
+$("vJeu").onclick=()=>showView("jeu");$("vObj").onclick=()=>showView("objectifs");
+window.addEventListener("hashchange",()=>showView(location.hash==="#objectifs"?"objectifs":"jeu"));
+if(location.hash==="#objectifs")showView("objectifs");
+
 /* ---------- Sauvegarde locale + export / import ---------- */
 function markDirty(){}
 function setSync(){const c=$("sync");c.textContent="Données sur cet appareil";c.className="chip ok";}
 function stamp(){const t=new Date();return dk(t)+"_"+String(t.getHours()).padStart(2,"0")+String(t.getMinutes()).padStart(2,"0");}
 $("bkExport").onclick=()=>{
-  const blob=new Blob([JSON.stringify({app:"quete-forme",v:1,exported:Date.now(),entries},null,0)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({app:"quete-forme",v:2,exported:Date.now(),entries,goals},null,0)],{type:"application/json"});
   const url=URL.createObjectURL(blob),l=document.createElement("a");
   l.href=url;l.download="quete-forme-sauvegarde-"+stamp()+".json";document.body.appendChild(l);l.click();l.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
@@ -765,6 +1116,7 @@ $("bkImport").onchange=async ev=>{
     const ok=list.filter(e=>e&&typeof e.id==="string"&&typeof e.a==="string"&&typeof e.d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.d));
     const have=new Set(entries.map(e=>e.id));let added=0;
     ok.forEach(e=>{if(!have.has(e.id)){entries.push(e);added++;}});
+    if(Array.isArray(j.goals)){const gh=new Set(goals.map(g=>g.id));j.goals.forEach(g=>{if(g&&typeof g.id==="string"&&GT[g.type]&&!gh.has(g.id)){goals.push(g);added++;}});saveGoals();}
     saveLocal();render();renderBackup();
     toast(added?`${added} entrée${added>1?"s":""} restaurée${added>1?"s":""}`:"Rien de nouveau dans ce fichier");
   }catch(e){toast("Ce fichier n'est pas une sauvegarde Quête Forme");}
